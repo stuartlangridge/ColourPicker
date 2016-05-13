@@ -674,7 +674,7 @@ LAB_COLOUR_NAMES = [(rgb_to_lab(x[0],x[1],x[2]), x[3]) for x in COLOUR_NAMES]
 class Main(object):
     def __init__(self):
         # useful globals
-        self.snapsize = (80, 80)
+        self.snapsize = (120, 120)
         self.closest_name_cache = {}
         self.history = []
         self.colour_text_labels = []
@@ -704,7 +704,7 @@ class Main(object):
         # the box that history items go in
         self.vb = Gtk.VBox()
 
-        # the status bar
+        # the status bar and its formats list
         hb = Gtk.HBox()
         self.formatters = {
             "CSS hex": lambda r, g, b: "#%02x%02x%02x" % (r, g, b),
@@ -793,6 +793,35 @@ class Main(object):
         json.dump({"colours": self.history}, fp, indent=2)
         fp.close()
 
+    def rounded_path(self, surface, w, h):
+        radius = w / 10
+        # https://www.cairographics.org/samples/rounded_rectangle/
+        surface.arc(w - radius, radius, radius, -90 * math.pi / 180, 0)
+        surface.arc(w - radius, h -radius, radius, 0, 90 * math.pi / 180)
+        surface.arc(radius, h - radius, radius, 90 * math.pi / 180, 180 * math.pi / 180)
+        surface.arc(radius, radius, radius, 180 * math.pi / 180, 270 * math.pi / 180)
+        surface.close_path()
+
+    def rectangle_draw(self, da, surface, r, g, b):
+        w, h = da.get_size_request()
+        self.rounded_path(surface, w, h)
+        surface.set_source_rgb(r/255.0, g/255.0, b/255.0)
+        surface.clip_preserve()
+        surface.fill_preserve()
+        surface.set_line_width(2)
+        surface.set_source_rgba(0, 0, 0, 0.1)
+        surface.stroke()
+
+    def image_draw(self, da, surface, pixbuf):
+        print "image draw"
+        w, h = da.get_size_request()
+        self.rounded_path(surface, w, h)
+        Gdk.cairo_set_source_pixbuf(surface, pixbuf, 0, 0);
+        surface.clip_preserve()
+        surface.paint()
+        surface.set_line_width(2)
+        surface.set_source_rgba(0, 0, 0, 0.1)
+        surface.stroke()
 
     def add_history_item(self, r, g, b, base64_imgdata=None, pixbuf=None):
         def show_copy(eb, ev, img): img.set_opacity(1)
@@ -808,23 +837,22 @@ class Main(object):
         if base64_imgdata:
             loader = GdkPixbuf.PixbufLoader.new_with_type("png")
             loader.write(base64_imgdata.decode("base64"))
-            pb = loader.get_pixbuf()
+            pixbuf = loader.get_pixbuf()
             loader.close()
-            i = Gtk.Image.new_from_pixbuf(pb)
         elif pixbuf:
-            i = Gtk.Image.new_from_pixbuf(pixbuf)
             success, data = pixbuf.save_to_bufferv("png", [], [])
             base64_imgdata = data.encode("base64")
         else:
             raise Exception("A history item must have either imgdata or a pixbuf")
+
+        i = Gtk.DrawingArea()
+        i.set_size_request(self.snapsize[0]/2, self.snapsize[1]/2)
+        i.connect("draw", self.image_draw, pixbuf)
         hb.pack_start(i, False, False, 6)
 
-        str_colour = self.formatters["CSS hex"](r, g, b)
-        gdk_colour = Gdk.color_parse(str_colour)
-        gdk_rgba = Gdk.RGBA.from_color(gdk_colour)
         area = Gtk.DrawingArea()
         area.set_size_request(self.snapsize[0]/2, self.snapsize[1]/2)
-        area.override_background_color(0, gdk_rgba)
+        area.connect("draw", self.rectangle_draw, r, g, b)
         hb.pack_start(area, False, False, 6)
 
         lbl = Gtk.Label()
@@ -857,7 +885,7 @@ class Main(object):
             self.vb.get_children()[4].destroy()
 
     def set_colour_label_text(self, lbl, r, g, b):
-        lbl.set_markup("%s\n%s" % (
+        lbl.set_markup('%s\n<span font_weight="200">%s</span>' % (
             self.closest_name(r, g, b), self.formatters[self.active_formatter](r, g, b)))
 
     def finish_loading_history(self, f, res):
