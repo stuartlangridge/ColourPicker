@@ -674,7 +674,7 @@ LAB_COLOUR_NAMES = [(rgb_to_lab(x[0],x[1],x[2]), x[3]) for x in COLOUR_NAMES]
 class Main(object):
     def __init__(self):
         # useful globals
-        self.snapsize = (120, 120)
+        self.snapsize = (120, 120) # must both be even numbers, and must be square
         self.closest_name_cache = {}
         self.history = []
         self.colour_text_labels = []
@@ -683,7 +683,7 @@ class Main(object):
         # the window
         self.w = Gtk.Window()
         self.w.set_title("Colour Picker")
-        self.w.set_size_request(460, 500)
+        self.w.set_size_request((self.snapsize[0]/2) * 2 + 200, (self.snapsize[1]/2) * 5 + 200)
         self.w.connect("motion-notify-event", self.magnifier_move)
         self.w.connect("button-press-event", self.magnifier_clicked)
         self.w.connect("destroy", Gtk.main_quit)
@@ -725,7 +725,7 @@ class Main(object):
         vcell.set_property("weight", 200)
         vcell.set_property('xalign', 1.0)
         fcom.set_active(0)
-        self.active_formatter = "CSS hex"
+        self.active_formatter = "CSS rgb"
         fcom.connect("changed", self.change_format)
         hb.pack_end(fcom, False, False, 0)
         self.vb.pack_end(hb, False, False, 0)
@@ -745,27 +745,82 @@ class Main(object):
     def set_magnifier_cursor(self):
         root = Gdk.get_default_root_window()
         pointer, px, py = self.pointer.get_position()
+
+        # Screenshot where the cursor is, at snapsize
         self.latest_pb = self.snap(
             px-(self.snapsize[0]/2), py-(self.snapsize[1]/2), 
             self.snapsize[0], self.snapsize[1])
+
+        # Zoom that screenshot up, and grab a snapsize-sized piece from the middle
         scaled_pb = self.latest_pb.scale_simple(
             self.snapsize[0] * 2, self.snapsize[1] * 2, GdkPixbuf.InterpType.TILES)
         scaled_pb_subset = scaled_pb.new_subpixbuf(
             self.snapsize[0] / 2, self.snapsize[1] / 2, self.snapsize[0], self.snapsize[1])
 
-        surface = Gdk.cairo_surface_create_from_pixbuf(scaled_pb_subset, 0, None)
-        context = cairo.Context(surface)
-        context.set_source_rgba(1, 0.5, 0.5, 1)
-        context.set_line_width(4)
-        context.arc(self.snapsize[0] / 2, self.snapsize[1] / 2, self.snapsize[0] / 2, 0, 2*math.pi)
-        context.stroke()
-        drawn_pb = Gdk.pixbuf_get_from_surface(surface, 0, 0, surface.get_width(), surface.get_height())
+        # Create the base surface for our cursor
+        base = cairo.ImageSurface(cairo.FORMAT_ARGB32, self.snapsize[0], self.snapsize[1])
+        base_context = cairo.Context(base)
 
+        # Create the circular path on our base surface
+        base_context.arc(self.snapsize[0] / 2, self.snapsize[1] / 2, self.snapsize[0] / 2, 0, 2*math.pi)
+
+        # Paste in the screenshot
+        Gdk.cairo_set_source_pixbuf(base_context, scaled_pb_subset, 0, 0)
+
+        # Save the context now, before clipping, so we can restore it later
+        base_context.save()
+
+        # Clip to that circular path, keeping the path around for later, and paint the pasted screenshot
+        base_context.clip_preserve()
+        base_context.paint()
+
+        # Draw the outside border of the magnifier
+        base_context.set_source_rgba(0, 0, 0, 1)
+        base_context.set_line_width(4)
+        base_context.stroke()
+
+        # Restore the context, thus removing the clip region
+        base_context.restore()
+
+        # Draw the inside square border of the magnifier
+        base_context.set_source_rgba(255, 0, 0, 0.5)
+        base_context.set_line_width(1)
+        base_context.move_to(self.snapsize[0]/2 - 2, self.snapsize[1]/2 - 2)
+        base_context.rel_line_to(3, 0)
+        base_context.rel_line_to(0, 3)
+        base_context.rel_line_to(-3, 0)
+        base_context.rel_line_to(0, -3)
+        base_context.stroke()
+
+        # Get the current colour and write it on the magnifier, in the default font
+        # with a black rectangle under it
+        col = self.get_colour_from_pb(self.latest_pb)
+        text = self.formatters[self.active_formatter](col[0], col[1], col[2])
+        base_context.set_font_size(9)
+        x_bearing, y_bearing, text_width, text_height, x_advance, y_advance = base_context.text_extents(text)
+        text_draw_x = base.get_width() - text_width
+        text_draw_y = (base.get_height() * 0.95) - text_height
+        rect_border_width = 2
+        base_context.rectangle(
+            text_draw_x - rect_border_width + x_bearing,
+            text_draw_y - rect_border_width + y_bearing,
+            text_width + (2 * rect_border_width),
+            text_height + (2 * rect_border_width)
+        )
+        base_context.set_source_rgba(0, 0, 0, 0.7)
+        base_context.fill()
+        base_context.set_source_rgba(255, 255, 255, 1.0)
+        base_context.move_to(text_draw_x, text_draw_y)
+        base_context.show_text(text)
+
+        # turn the base surface into a pixbuf and thence a cursor
+        drawn_pb = Gdk.pixbuf_get_from_surface(base, 0, 0, base.get_width(), base.get_height())
         magnifier = Gdk.Cursor.new_from_pixbuf(
             self.w.get_screen().get_display(), 
             drawn_pb,
             self.snapsize[0]/2, self.snapsize[1]/2)
 
+        # Set the cursor
         self.pointer.grab(
             self.w.get_window(),
             Gdk.GrabOwnership.APPLICATION,
@@ -813,7 +868,6 @@ class Main(object):
         surface.stroke()
 
     def image_draw(self, da, surface, pixbuf):
-        print "image draw"
         w, h = da.get_size_request()
         self.rounded_path(surface, w, h)
         Gdk.cairo_set_source_pixbuf(surface, pixbuf, 0, 0);
@@ -880,9 +934,18 @@ class Main(object):
             "colour": [r, g, b]
         })
 
-        if len(self.history) > 5:
-            del self.history[5]
-            self.vb.get_children()[4].destroy()
+        while len(self.history) > 5:
+            del self.history[0]
+            self.vb.get_children()[5].destroy()
+            #print "HISTORY"
+            #for i in range(len(self.history)):
+            #    print i, self.history[i]["colour"]
+            ##print "del history", self.history[0]["colour"]
+            #print "NODES"
+            #kids = self.vb.get_children()
+            #for i in range(len(kids)):
+            #    print i, kids[i].get_children()[0].get_children()[2].get_text()
+            #print "del node", self.vb.get_children()[4].get_children()[0].get_children()[2].get_text()
 
     def set_colour_label_text(self, lbl, r, g, b):
         lbl.set_markup('%s\n<span font_weight="200">%s</span>' % (
