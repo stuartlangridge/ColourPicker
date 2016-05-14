@@ -715,19 +715,19 @@ class Main(object):
         formats = Gtk.ListStore(str)
         for fr, fn in self.formatters.items():
             formats.append((fr,))
-        fcom = Gtk.ComboBox.new_with_model(formats)
+        self.fcom = Gtk.ComboBox.new_with_model(formats)
         fcell = Gtk.CellRendererText()
-        fcom.pack_start(fcell, expand=True)
-        fcom.add_attribute(fcell, "text", 0)
+        self.fcom.pack_start(fcell, expand=True)
+        self.fcom.add_attribute(fcell, "text", 0)
         vcell = Gtk.CellRendererText()
-        fcom.pack_start(vcell, True)
-        fcom.set_cell_data_func(vcell, self.formatRGB)
+        self.fcom.pack_start(vcell, True)
+        self.fcom.set_cell_data_func(vcell, self.formatRGB)
         vcell.set_property("weight", 200)
         vcell.set_property('xalign', 1.0)
-        fcom.set_active(0)
         self.active_formatter = "CSS rgb"
-        fcom.connect("changed", self.change_format)
-        hb.pack_end(fcom, False, False, 0)
+        self.fcom.set_active(self.formatters.keys().index(self.active_formatter))
+        self.fcom.connect("changed", self.change_format)
+        hb.pack_end(self.fcom, False, False, 0)
         self.vb.pack_end(hb, False, False, 0)
 
         # and, go
@@ -845,7 +845,7 @@ class Main(object):
         # five small images, so life's too short to hammer on this; we'll write with
         # Python and take the hit.
         fp = codecs.open(self.get_cache_file(), encoding="utf8", mode="w")
-        json.dump({"colours": self.history}, fp, indent=2)
+        json.dump({"colours": self.history, "formatter": self.active_formatter}, fp, indent=2)
         fp.close()
 
     def rounded_path(self, surface, w, h):
@@ -937,15 +937,6 @@ class Main(object):
         while len(self.history) > 5:
             del self.history[0]
             self.vb.get_children()[5].destroy()
-            #print "HISTORY"
-            #for i in range(len(self.history)):
-            #    print i, self.history[i]["colour"]
-            ##print "del history", self.history[0]["colour"]
-            #print "NODES"
-            #kids = self.vb.get_children()
-            #for i in range(len(kids)):
-            #    print i, kids[i].get_children()[0].get_children()[2].get_text()
-            #print "del node", self.vb.get_children()[4].get_children()[0].get_children()[2].get_text()
 
     def set_colour_label_text(self, lbl, r, g, b):
         lbl.set_markup('%s\n<span font_weight="200">%s</span>' % (
@@ -961,6 +952,12 @@ class Main(object):
                     item["colour"][0], item["colour"][1], item["colour"][2],
                     base64_imgdata=item["imgdata"]
                 )
+            f = data.get("formatter")
+            if f and f in self.formatters.keys():
+                self.active_formatter = f
+                self.fcom.set_active(self.formatters.keys().index(f))
+            else:
+                print "fail", f
         except:
             print "Failed to restore data"
             raise
@@ -992,6 +989,7 @@ class Main(object):
         self.active_formatter = cb.get_model().get_value(cb.get_active_iter(), 0)
         for lbl, hist in zip(self.colour_text_labels, self.history):
             self.set_colour_label_text(lbl, hist["colour"][0], hist["colour"][1], hist["colour"][2])
+        GLib.idle_add(self.serialise)
 
     def closest_name(self, r, g, b):
         max_deltaE_found = 999999999
@@ -1019,255 +1017,6 @@ class Main(object):
         root = Gdk.get_default_root_window()
         screenshot = Gdk.pixbuf_get_from_window(root, x, y, w, h)
         return screenshot
-
-
-class foo:
-    # ----------------------------------------------------------------------------------------------
-    # ----------------------------------------------------------------------------------------------
-    # ----------------------------------------------------------------------------------------------
-    # ----------------------------------------------------------------------------------------------
-    # ----------------------------------------------------------------------------------------------
-    # ----------------------------------------------------------------------------------------------
-    # ----------------------------------------------------------------------------------------------
-    # ----------------------------------------------------------------------------------------------
-    # ----------------------------------------------------------------------------------------------
-    # ----------------------------------------------------------------------------------------------
-    # ----------------------------------------------------------------------------------------------
-
-    def x__init__(self):
-        self.snapsize = (160, 160)
-        self.closest_name_cache = {}
-
-        # Create window and widgets
-        self.w = Gtk.Window()
-        self.w.set_title("Colour Picker")
-        self.w.set_size_request(460, 500)
-        self.w.set_name("ColourPickerMain")
-
-        vb = Gtk.VBox(False, 12)
-
-        head = Gtk.HeaderBar()
-        head.set_show_close_button(True)
-        head.props.title = "Colour Picker"
-        self.w.set_titlebar(head)
-
-        btngrab = Gtk.Button()
-        icon = Gio.ThemedIcon(name="find-location-symbolic")
-        image = Gtk.Image.new_from_gicon(icon, Gtk.IconSize.BUTTON)
-        btngrab.add(image)
-        head.pack_start(btngrab)
-        btngrab.connect("clicked", self.grab)
-
-        self.remembered = Gtk.ListStore(GdkPixbuf.Pixbuf, int, int, int, bool, str)
-        #                               screenshot        r    g    b    hover tooltip
-        lv = Gtk.TreeView(model=self.remembered)
-        celli = Gtk.CellRendererPixbuf()
-        coli = Gtk.TreeViewColumn(0, celli, pixbuf=0)
-        celli.set_property("xpad", 12)
-        celli.set_property("ypad", 12)
-        cellr = Gtk.CellRendererText()
-        cellr.set_fixed_size(self.snapsize[0]/2, self.snapsize[1]/3)
-        colr = Gtk.TreeViewColumn(0, cellr)
-        colr.set_cell_data_func(cellr, self.colourFromListStore, ("cell-background", "CSS hex"))
-        cellc = Gtk.CellRendererText()
-        self.colourColumn = Gtk.TreeViewColumn(1, cellc)
-        self.colourColumn.set_cell_data_func(cellc, self.namedColourFromListStore, ("markup", None))
-        cellc.set_property("xpad", 12)
-        cellc.set_property("ypad", 12)
-        cellh = Gtk.CellRendererPixbuf()
-        cellh.set_property("icon-name", "edit-copy-symbolic")
-        cellh.set_property("xpad", 12)
-        colh = Gtk.TreeViewColumn(2, cellh, visible=4)
-        lv.append_column(coli)
-        lv.append_column(colr)
-        lv.append_column(self.colourColumn)
-        lv.append_column(colh)
-        lv.set_headers_visible(False)
-        lv.set_tooltip_column(5)
-
-        lv.get_selection().set_select_function(self.row_clicked, None)
-        lv.connect("motion-notify-event", self.list_hover)
-        vb.pack_start(lv, False, False, 12)
-
-        hb = Gtk.HBox()
-        self.formatters = {
-            "CSS hex": lambda r, g, b: "#%02x%02x%02x" % (r, g, b),
-            "CSS uppercase hex": lambda r, g, b: ("#%02x%02x%02x" % (r, g, b)).upper(),
-            "CSS rgb": lambda r, g, b: "rgb(%s, %s, %s)" % (r, g, b),
-            "CSS rgba": lambda r, g, b: "rgba(%s, %s, %s, 1)" % (r, g, b)
-        }
-        formats = Gtk.ListStore(str)
-        for fr, fn in self.formatters.items():
-            formats.append((fr,))
-        fcom = Gtk.ComboBox.new_with_model(formats)
-        fcell = Gtk.CellRendererText()
-        fcom.pack_start(fcell, expand=True)
-        fcom.add_attribute(fcell, "text", 0)
-        vcell = Gtk.CellRendererText()
-        fcom.pack_start(vcell, True)
-        fcom.set_cell_data_func(vcell, self.formatRGB)
-        vcell.set_property("weight", 200)
-        vcell.set_property('xalign', 1.0)
-        fcom.set_active(0)
-        self.active_formatter = "CSS hex"
-        fcom.connect("changed", self.change_format)
-        hb.pack_end(fcom, False, False, 0)
-        vb.pack_end(hb, False, False, 0)
-
-        self.w.add(vb)
-        self.w.connect("destroy", Gtk.main_quit)
-        self.w.show_all()
-
-        self.pointer = self.w.get_screen().get_display().get_device_manager().get_client_pointer()
-
-        self.grabbed = False
-
-        self.w.connect("motion-notify-event", self.window_move)
-        self.w.connect("button-press-event", self.window_clicked)
-
-        GLib.idle_add(self.restore_colours)
-
-    def list_hover(self, lv, ev):
-        row = lv.get_path_at_pos(ev.x, ev.y)
-        if row:
-            path, column, cx, cy = row
-            model = lv.get_model()
-            for m in model:
-                if m.path == path:
-                    m[4] = True
-                else:
-                    m[4] = False
-
-    def colourFromListStore(self, column, cell_renderer, model, iter, userdata):
-        prop, formatter = userdata
-        if not formatter: formatter = self.active_formatter
-        if not formatter: formatter = "CSS rgba"
-        r = model.get_value(iter, 1)
-        g = model.get_value(iter, 2)
-        b = model.get_value(iter, 3)
-        cell_renderer.set_property(prop, self.formatters[formatter](r, g, b))
-
-    def namedColourFromListStore(self, column, cell_renderer, model, iter, userdata):
-        prop, formatter = userdata
-        if not formatter: formatter = self.active_formatter
-        if not formatter: formatter = "CSS rgba"
-        r = model.get_value(iter, 1)
-        g = model.get_value(iter, 2)
-        b = model.get_value(iter, 3)
-        cell_renderer.set_property(
-            prop, 
-            "%s\n<b>%s</b>" % (
-                self.closest_name(r, g, b),
-                self.formatters[formatter](r, g, b)
-            )
-        )
-
-    def closest_name(self, r, g, b):
-        max_deltaE_found = 999999999
-        col = self.closest_name_cache.get((r, g, b))
-        if col is not None: return col
-        labcol = rgb_to_lab(r, g, b)
-        for reflabcol, name in LAB_COLOUR_NAMES:
-            dE = deltaE(labcol, reflabcol)
-            if dE < max_deltaE_found:
-                col = name
-                max_deltaE_found = dE
-        self.closest_name_cache[(r, g, b)] = col
-        return col
-
-    def change_format(self, cb):
-        self.active_formatter = cb.get_model().get_value(cb.get_active_iter(), 0)
-        self.colourColumn.queue_resize() # invalidate column so it re-calls the data_func()
-
-    def formatRGB(self, column, cell_renderer, model, iter):
-        formatter = self.formatters.get(model.get_value(iter, 0))
-        text = "?"
-        if formatter:
-            text = formatter(255, 255, 255)
-        cell_renderer.set_property("text", text)
-
-    def get_colour_from_pb(self, pb):
-        pixel_data = self.latest_pb.get_pixels()
-        offset = (self.latest_pb.get_rowstride() * (self.snapsize[1] / 2)) + ((self.latest_pb.get_rowstride() / self.snapsize[0]) * (self.snapsize[0] / 2))
-        rgb_vals = tuple([ord(x) for x in pixel_data[offset:offset+3]])
-        return rgb_vals
-
-    def window_clicked(self, *args, **kwargs):
-        if self.grabbed:
-            self.ungrab()
-            colour = self.get_colour_from_pb(self.latest_pb)
-            pbcopy = self.latest_pb.scale_simple(self.snapsize[0] / 2, self.snapsize[1] / 2, GdkPixbuf.InterpType.TILES)
-            self.remembered.prepend((pbcopy, colour[0], colour[1], colour[2], False, "Copy to clipboard"))
-            itr = self.remembered.iter_nth_child(None, 5)
-            while itr:
-                self.remembered.remove(itr)
-                itr = self.remembered.iter_nth_child(None, 5)
-
-            GLib.idle_add(self.serialise)
-
-    def window_move(self, *args, **kwargs):
-        # FIXME the problem is here. How do we update the cursor? Editing the pixbuf 
-        # we created it with doesn't work. Setting the cursor on our window doesn't work
-        if not self.grabbed: return
-        self.set_magnifier_cursor()
-
-    def row_clicked(self, sel, store, path, selected, data):
-        r = store.get_value(store.get_iter(path), 1)
-        g = store.get_value(store.get_iter(path), 2)
-        b = store.get_value(store.get_iter(path), 3)
-        colour = self.formatters[self.active_formatter](r, g, b)
-        Gtk.Clipboard.get(Gdk.SELECTION_CLIPBOARD).set_text(colour, len(colour))
-        return False # don't actually select a row
-
-    def finish_restoring(self, f, res):
-        try:
-            success, contents, _ = f.load_contents_finish(res)
-            data = json.loads(contents)
-            colours = data["colours"]
-            for item in colours:
-                loader = GdkPixbuf.PixbufLoader.new_with_type("png")
-                loader.write(item["imgdata"].decode("base64"))
-                pb = loader.get_pixbuf()
-                loader.close()
-                data = (pb, item["colour"][0], item["colour"][1], item["colour"][2], False, "Copy to clipboard")
-                self.remembered.append(data)
-        except:
-            print "Failed to restore data"
-            raise
-
-    def restore_colours(self):
-        f = Gio.File.new_for_path(self.get_cache_file())
-        f.load_contents_async(None, self.finish_restoring)
-
-    def snap(self, x, y, w, h):
-        display=Gdk.Display.get_default()
-        (screen,self.x,self.y,modifier) = display.get_pointer()
-        root = Gdk.get_default_root_window()
-        screenshot = Gdk.pixbuf_get_from_window(root, x, y, w, h)
-        return screenshot
-
-    def poll(self, *args, **kwargs):
-        if self.grabbed: return True
-        root = Gdk.get_default_root_window()
-        pointer, px, py = self.pointer.get_position()
-        self.latest_pb = self.snap(px-(self.snapsize[0]/2), py-(self.snapsize[1]/2), self.snapsize[0], self.snapsize[1])
-        pbd = self.latest_pb.scale_simple(self.snapsize[0] * 2, self.snapsize[1] * 2, GdkPixbuf.InterpType.TILES)
-        surface = Gdk.cairo_surface_create_from_pixbuf(pbd, 0, None)
-        context = cairo.Context(surface)
-        context.set_source_rgba(1, 0.5, 0.5, 1)
-        context.set_line_width(4)
-        context.arc(self.snapsize[0], self.snapsize[1], 8, 0, 2*math.pi)
-        context.stroke()
-        pbdc = Gdk.pixbuf_get_from_surface(surface, 0, 0, surface.get_width(), surface.get_height())
-        self.image.set_from_pixbuf(pbdc)
-
-        pixel_data = self.latest_pb.get_pixels()
-        offset = (self.latest_pb.get_rowstride() * (self.snapsize[1] / 2)) + ((self.latest_pb.get_rowstride() / self.snapsize[0]) * (self.snapsize[0] / 2))
-        rgb_vals = tuple([ord(x) for x in pixel_data[offset:offset+3]])
-        hex_colour = '#%02x%02x%02x' % rgb_vals
-        self.colour.set_text(hex_colour)
-
-        return True
 
 
 if __name__ == "__main__":
