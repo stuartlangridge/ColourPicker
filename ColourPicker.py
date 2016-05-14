@@ -681,6 +681,21 @@ class Main(object):
         self.grabbed = False
         self.zoomlevel = 1
 
+        # The CSS
+        style_provider = Gtk.CssProvider()
+        css = """
+            GtkLabel { transition: 250ms ease-in-out; }
+            GtkLabel.highlighted { background-color: rgba(255, 255, 0, 0.4); }
+            GtkLabel#empty-heading { font-size: 200%; }
+        """
+        style_provider.load_from_data(css)
+        Gtk.StyleContext.add_provider_for_screen(
+            Gdk.Screen.get_default(), 
+            style_provider,
+            Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
+        )
+
+
         # the window
         self.w = Gtk.Window()
         self.w.set_title("Colour Picker")
@@ -733,8 +748,21 @@ class Main(object):
         hb.pack_end(self.fcom, False, False, 0)
         self.vb.pack_end(hb, False, False, 0)
 
+        # the empty state, which we always show now because we don't know if there is
+        # history until we've loaded it, which is done lazily
+        self.empty = Gtk.VBox()
+        icon = Gtk.Image.new_from_icon_name("edit-paste-symbolic", 0)
+        icon.set_property("valign", Gtk.Align.END)
+        self.empty.pack_start(icon, True, True, 0)
+        nocol1 = Gtk.Label("No Colours")
+        nocol1.set_name("empty-heading")
+        self.empty.pack_start(nocol1, False, False, 12)
+        nocol2 = Gtk.Label("You haven't picked any colours.")
+        nocol2.set_property("valign", Gtk.Align.START)
+        self.empty.pack_start(nocol2, True, True, 0)
+        self.w.add(self.empty)
+
         # and, go
-        self.w.add(self.vb)
         self.w.show_all()
         GLib.idle_add(self.load_history)
 
@@ -883,9 +911,13 @@ class Main(object):
     def add_history_item(self, r, g, b, base64_imgdata=None, pixbuf=None):
         def show_copy(eb, ev, img): img.set_opacity(1)
         def hide_copy(eb, ev, img): img.set_opacity(0)
-        def clipboard(*args):
+        def clipboard(button, r, g, b, label):
+            def unfade(label):
+                label.get_style_context().remove_class("highlighted")
             colour = self.formatters[self.active_formatter](r, g, b)
             Gtk.Clipboard.get(Gdk.SELECTION_CLIPBOARD).set_text(colour, len(colour))
+            label.get_style_context().add_class("highlighted")
+            GLib.timeout_add(300, unfade, label)
 
         eb = Gtk.EventBox()
         hb = Gtk.HBox()
@@ -918,14 +950,22 @@ class Main(object):
         lbl.set_halign(Gtk.Align.START)
         hb.pack_start(lbl, True, True, 6)
 
-        copy = Gtk.Image.new_from_icon_name("edit-copy-symbolic", 0)
+        copy = Gtk.Button.new_from_icon_name("edit-copy-symbolic", 0)
+        copy.set_label("Copy")
         copy.set_opacity(0)
+        copy.connect("clicked", clipboard, r, g, b, lbl)
+        copy.connect("enter-notify-event", show_copy, copy)
+        copy.connect("leave-notify-event", hide_copy, copy)
         hb.pack_start(copy, False, False, 6)
 
         eb.connect("enter-notify-event", show_copy, copy)
         eb.connect("leave-notify-event", hide_copy, copy)
-        eb.connect("button-press-event", clipboard, r, g, b)
+        #eb.connect("button-press-event", clipboard, r, g, b)
         eb.set_tooltip_text("Copy to clipboard")
+
+        eb.set_property("can_focus", True)
+        eb.connect("focus-in-event", show_copy, copy)
+        eb.connect("focus-out-event", hide_copy, copy)
 
         self.vb.pack_start(eb, False, False, 12)
         self.vb.reorder_child(eb, 0)
@@ -940,6 +980,12 @@ class Main(object):
         while len(self.history) > 5:
             del self.history[0]
             self.vb.get_children()[5].destroy()
+
+        if self.empty.get_parent():
+            self.empty.get_parent().remove(self.empty)
+        if not self.vb.get_parent():
+            self.w.add(self.vb)
+            self.vb.show_all()
 
     def set_colour_label_text(self, lbl, r, g, b):
         lbl.set_markup('%s\n<span font_weight="200">%s</span>' % (
@@ -963,7 +1009,6 @@ class Main(object):
                 print "fail", f
         except:
             print "Failed to restore data"
-            raise
 
     def load_history(self):
         f = Gio.File.new_for_path(self.get_cache_file())
