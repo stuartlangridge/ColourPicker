@@ -679,6 +679,7 @@ class Main(object):
         self.history = []
         self.colour_text_labels = []
         self.grabbed = False
+        self.zoomlevel = 1
 
         # the window
         self.w = Gtk.Window()
@@ -686,6 +687,8 @@ class Main(object):
         self.w.set_size_request((self.snapsize[0]/2) * 2 + 200, (self.snapsize[1]/2) * 5 + 200)
         self.w.connect("motion-notify-event", self.magnifier_move)
         self.w.connect("button-press-event", self.magnifier_clicked)
+        self.w.connect("scroll-event", self.magnifier_scrollwheel)
+        self.w.connect("key-press-event", self.magnifier_keypress)
         self.w.connect("destroy", Gtk.main_quit)
         self.pointer = self.w.get_screen().get_display().get_device_manager().get_client_pointer()
 
@@ -736,10 +739,9 @@ class Main(object):
         GLib.idle_add(self.load_history)
 
     def grab(self, btn):
-        print "grab"
         self.grabbed = True
         self.w.set_opacity(0)
-        GLib.timeout_add(5000, self.ungrab)
+        #GLib.timeout_add(5000, self.ungrab)
         self.set_magnifier_cursor()
 
     def set_magnifier_cursor(self):
@@ -815,10 +817,12 @@ class Main(object):
 
         # turn the base surface into a pixbuf and thence a cursor
         drawn_pb = Gdk.pixbuf_get_from_surface(base, 0, 0, base.get_width(), base.get_height())
+        zoom_pb = drawn_pb.scale_simple(
+            self.snapsize[0] * self.zoomlevel, self.snapsize[1] * self.zoomlevel, GdkPixbuf.InterpType.TILES)
         magnifier = Gdk.Cursor.new_from_pixbuf(
             self.w.get_screen().get_display(), 
-            drawn_pb,
-            self.snapsize[0]/2, self.snapsize[1]/2)
+            zoom_pb,
+            zoom_pb.get_width()/2, zoom_pb.get_height()/2)
 
         # Set the cursor
         self.pointer.grab(
@@ -830,7 +834,6 @@ class Main(object):
             Gdk.CURRENT_TIME)
 
     def ungrab(self, *args, **kwargs):
-        print "ungrabbing", args, kwargs
         self.pointer.ungrab(Gdk.CURRENT_TIME)
         self.grabbed = False
         self.w.set_opacity(1)
@@ -966,9 +969,29 @@ class Main(object):
         f = Gio.File.new_for_path(self.get_cache_file())
         f.load_contents_async(None, self.finish_loading_history)
 
-    def magnifier_clicked(self, *args, **kwargs):
+    def magnifier_scrollwheel(self, window, ev):
+        if self.grabbed:
+            if ev.direction == Gdk.ScrollDirection.SMOOTH:
+                return
+            if ev.direction == Gdk.ScrollDirection.UP:
+                self.zoomlevel += 0.5
+            elif ev.direction == Gdk.ScrollDirection.DOWN:
+                self.zoomlevel -= 0.5
+                if self.zoomlevel < 1:
+                    self.zoomlevel = 1
+            else:
+                return
+            self.set_magnifier_cursor()
+
+    def magnifier_keypress(self, window, ev):
+        if self.grabbed:
+            if ev.keyval == Gdk.KEY_Escape:
+                self.ungrab()
+
+    def magnifier_clicked(self, window, ev):
         if self.grabbed:
             self.ungrab()
+            if ev.button != 1: return # if this is not the primary button, bail
             colour = self.get_colour_from_pb(self.latest_pb)
             pbcopy = self.latest_pb.scale_simple(self.snapsize[0] / 2,
                 self.snapsize[1] / 2, GdkPixbuf.InterpType.TILES)
