@@ -687,6 +687,17 @@ class Main(object):
             GtkLabel { transition: 250ms ease-in-out; }
             GtkLabel.highlighted { background-color: rgba(255, 255, 0, 0.4); }
             GtkLabel#empty-heading { font-size: 200%; }
+            GtkFrame {
+                background-color: rgba(255, 255, 255, 0.6);
+            }
+            GtkEventBox GtkFrame {
+                border-width: 0 0 1px 0;
+                padding: 6px 0;
+            }
+            GtkEventBox:nth-child(5) GtkFrame {
+                border-width: 0;
+                padding: 6px 0;
+            }
         """
         style_provider.load_from_data(css)
         Gtk.StyleContext.add_provider_for_screen(
@@ -694,7 +705,6 @@ class Main(object):
             style_provider,
             Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
         )
-
 
         # the window
         self.w = Gtk.Window()
@@ -706,6 +716,13 @@ class Main(object):
         self.w.connect("key-press-event", self.magnifier_keypress)
         self.w.connect("destroy", Gtk.main_quit)
         self.pointer = self.w.get_screen().get_display().get_device_manager().get_client_pointer()
+
+        # The lowlight colour: used for subsidiary text throughout, and looked up from the theme
+        ok, col = self.w.get_style_context().lookup_color("info_fg_color")
+        if ok and False:
+            self.lowlight_rgba = col
+        else:
+            self.lowlight_rgba = Gdk.RGBA(red=0.5, green=0.5, blue=0.5, alpha=1)
 
         # the headerbar
         head = Gtk.HeaderBar()
@@ -719,7 +736,7 @@ class Main(object):
         head.pack_start(btngrab)
         btngrab.connect("clicked", self.grab)
 
-        # the box that history items go in
+        # the box that contains everything
         self.vb = Gtk.VBox()
 
         # the status bar and its formats list
@@ -740,13 +757,32 @@ class Main(object):
         vcell = Gtk.CellRendererText()
         self.fcom.pack_start(vcell, True)
         self.fcom.set_cell_data_func(vcell, self.formatRGB)
-        vcell.set_property("weight", 200)
         vcell.set_property('xalign', 1.0)
+        vcell.set_property("foreground_rgba", self.lowlight_rgba)
         self.active_formatter = "CSS rgb"
         self.fcom.set_active(self.formatters.keys().index(self.active_formatter))
         self.fcom.connect("changed", self.change_format)
-        hb.pack_end(self.fcom, False, False, 0)
-        self.vb.pack_end(hb, False, False, 0)
+        hb.pack_start(Gtk.Label("Format:"), False, False, 12)
+        hb.pack_start(self.fcom, False, False, 12)
+        self.vb.pack_start(hb, False, False, 12)
+
+
+        # the box that history items go in
+        hb3 = Gtk.HBox()
+        f = Gtk.Frame()
+        self.container_vb = Gtk.VBox()
+        self.vb.pack_start(hb3, True, True, 0)
+        hb3.pack_start(f, True, True, 12)
+        f.add(self.container_vb)
+        self.container_vb.get_style_context().add_class("container_vb")
+
+        # The clear history button
+        self.btnclear = Gtk.Button("Clear history")
+        self.btnclear.set_sensitive(False)
+        self.btnclear.connect("clicked", self.clear_history)
+        hb2 = Gtk.HBox()
+        hb2.pack_end(self.btnclear, False, False, 12)
+        self.vb.pack_end(hb2, False, False, 12)
 
         # the empty state, which we always show now because we don't know if there is
         # history until we've loaded it, which is done lazily
@@ -765,6 +801,14 @@ class Main(object):
         # and, go
         self.w.show_all()
         GLib.idle_add(self.load_history)
+
+    def clear_history(self, button):
+        self.history = []
+        for c in self.container_vb.get_children():
+            c.get_parent().remove(c)
+        self.w.remove(self.vb)
+        self.w.add(self.empty)
+        self.serialise()
 
     def grab(self, btn):
         self.grabbed = True
@@ -921,7 +965,9 @@ class Main(object):
 
         eb = Gtk.EventBox()
         hb = Gtk.HBox()
-        eb.add(hb)
+        f = Gtk.Frame()
+        eb.add(f)
+        f.add(hb)
 
         if base64_imgdata:
             loader = GdkPixbuf.PixbufLoader.new_with_type("png")
@@ -967,8 +1013,8 @@ class Main(object):
         eb.connect("focus-in-event", show_copy, copy)
         eb.connect("focus-out-event", hide_copy, copy)
 
-        self.vb.pack_start(eb, False, False, 12)
-        self.vb.reorder_child(eb, 0)
+        self.container_vb.pack_start(eb, False, False, 0)
+        self.container_vb.reorder_child(eb, 0)
         self.vb.show_all()
         eb.show_all()
 
@@ -986,10 +1032,17 @@ class Main(object):
         if not self.vb.get_parent():
             self.w.add(self.vb)
             self.vb.show_all()
+        self.btnclear.set_sensitive(True)
 
     def set_colour_label_text(self, lbl, r, g, b):
-        lbl.set_markup('%s\n<span font_weight="200">%s</span>' % (
-            self.closest_name(r, g, b), self.formatters[self.active_formatter](r, g, b)))
+        lbl.set_markup('%s\n<span color="%s">%s</span>' % (
+            self.closest_name(r, g, b),
+            self.formatters["CSS hex"](
+                255 * self.lowlight_rgba.red,
+                255 * self.lowlight_rgba.green,
+                255 * self.lowlight_rgba.blue),
+            self.formatters[self.active_formatter](r, g, b)
+        ))
 
     def finish_loading_history(self, f, res):
         try:
@@ -1009,6 +1062,7 @@ class Main(object):
                 print "fail", f
         except:
             print "Failed to restore data"
+            raise
 
     def load_history(self):
         f = Gio.File.new_for_path(self.get_cache_file())
