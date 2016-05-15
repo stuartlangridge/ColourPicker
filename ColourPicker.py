@@ -711,7 +711,7 @@ class Main(object):
 
         # the window
         self.w = Gtk.Window()
-        self.w.set_title("Colour Picker")
+        self.w.set_title("Pick")
         self.w.set_size_request((self.snapsize[0]/2) * 2 + 200, (self.snapsize[1]/2) * 5 + 200)
         self.w.connect("motion-notify-event", self.magnifier_move)
         self.w.connect("button-press-event", self.magnifier_clicked)
