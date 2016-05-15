@@ -730,7 +730,7 @@ class Main(object):
         # the headerbar
         head = Gtk.HeaderBar()
         head.set_show_close_button(True)
-        head.props.title = "Colour Picker"
+        head.props.title = "Pick"
         self.w.set_titlebar(head)
         btngrab = Gtk.Button()
         icon = Gio.ThemedIcon(name="find-location-symbolic")
