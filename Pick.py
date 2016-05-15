@@ -680,6 +680,7 @@ class Main(object):
         self.colour_text_labels = []
         self.grabbed = False
         self.zoomlevel = 1
+        GLib.set_application_name("Pick")
 
         # The CSS
         style_provider = Gtk.CssProvider()
@@ -720,6 +721,16 @@ class Main(object):
         self.w.connect("destroy", Gtk.main_quit)
         self.pointer = self.w.get_screen().get_display().get_device_manager().get_client_pointer()
 
+        # The about dialog
+        def show_about_dialog(*args):
+            about_dialog = Gtk.AboutDialog()
+            about_dialog.set_artists(["Sam Hewitt"])
+            about_dialog.set_authors(["Stuart Langridge"])
+            about_dialog.set_license_type(Gtk.License.MIT_X11)
+            about_dialog.set_website("https://www.kryogenix.org/code/pick")
+            print about_dialog.run()
+            if about_dialog: about_dialog.destroy()
+
         # The lowlight colour: used for subsidiary text throughout, and looked up from the theme
         ok, col = self.w.get_style_context().lookup_color("info_fg_color")
         if ok and False:
@@ -741,6 +752,42 @@ class Main(object):
 
         # the box that contains everything
         self.vb = Gtk.VBox()
+
+        # The menu
+        action_group = Gtk.ActionGroup("menu_actions")
+        action_filemenu = Gtk.Action("FileMenu", "File", None, None)
+        action_group.add_action(action_filemenu)
+        action_new = Gtk.Action("FileCapture", "_Capture",
+            "Capture a pixel colour", Gtk.STOCK_NEW)
+        action_new.connect("activate", self.grab)
+        action_group.add_action_with_accel(action_new, None)
+        action_filequit = Gtk.Action("FileQuit", None, None, Gtk.STOCK_QUIT)
+        action_filequit.connect("activate", Gtk.main_quit)
+        action_group.add_action(action_filequit)
+        action_group.add_actions([
+            ("HelpMenu", None, "Help"),
+            ("HelpAbout", None, "About", None, None, show_about_dialog)
+        ])
+        uimanager = Gtk.UIManager()
+        uimanager.add_ui_from_string("""
+            <ui>
+              <menubar name='MenuBar'>
+                <menu action='FileMenu'>
+                  <menuitem action='FileCapture' />
+                  <menuitem action='FileQuit' />
+                </menu>
+                <menu action='HelpMenu'>
+                  <menuitem action='HelpAbout' />
+                </menu>
+              </menubar>
+            </ui>""")
+        accelgroup = uimanager.get_accel_group()
+        self.w.add_accel_group(accelgroup)
+        uimanager.insert_action_group(action_group)
+        menubar = uimanager.get_widget("/MenuBar")
+        box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        box.pack_start(menubar, False, False, 0)
+        self.vb.add(box)
 
         # the status bar and its formats list
         hb = Gtk.HBox()
@@ -1028,7 +1075,7 @@ class Main(object):
 
         while len(self.history) > 5:
             del self.history[0]
-            self.vb.get_children()[5].destroy()
+            self.container_vb.get_children()[5].destroy()
 
         if self.empty.get_parent():
             self.empty.get_parent().remove(self.empty)
