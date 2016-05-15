@@ -795,7 +795,9 @@ class Main(object):
             "CSS hex": lambda r, g, b: "#%02x%02x%02x" % (r, g, b),
             "CSS uppercase hex": lambda r, g, b: ("#%02x%02x%02x" % (r, g, b)).upper(),
             "CSS rgb": lambda r, g, b: "rgb(%s, %s, %s)" % (r, g, b),
-            "CSS rgba": lambda r, g, b: "rgba(%s, %s, %s, 1)" % (r, g, b)
+            "CSS rgba": lambda r, g, b: "rgba(%s, %s, %s, 1)" % (r, g, b),
+            "GDK.RGBA": lambda r, g, b: "Gdk.RGBA(%.3f, %.3f, %.3f, 1.0)" % (r/255.0, g/255.0, b/255.0),
+            "QML Qt.rgba": lambda r, g, b: "Qt.rgba(%.3f, %.3f, %.3f, 1.0)" % (r/255.0, g/255.0, b/255.0)
         }
         formats = Gtk.ListStore(str)
         for fr, fn in self.formatters.items():
