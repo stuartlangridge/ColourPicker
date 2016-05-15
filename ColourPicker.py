@@ -694,6 +694,9 @@ class Main(object):
                 border-width: 0 0 1px 0;
                 padding: 6px 0;
             }
+            GtkEventBox:focused {
+                background: rgba(0, 0, 0, 0.2);
+            }
             GtkEventBox:nth-child(5) GtkFrame {
                 border-width: 0;
                 padding: 6px 0;
