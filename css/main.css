@@ -208,7 +208,7 @@ article img.aside {
 
 .dl {
     text-align: center;
-    margin: 2em 0;
+    margin: 1em 0;
 }
 
 .dl a {
@@ -221,7 +221,16 @@ article img.aside {
     text-decoration: none;
     white-space: nowrap;
 }
-
+.dl a.ubuntu {
+    background: url(../img/logo-ubuntu_su-orange-hex.png) center center no-repeat;
+    border-color: #e77f5a;
+    background-size: contain;
+    text-indent: -1000em;
+    min-width: 8em;
+}
+.dl a.ubuntu:hover {
+    background-color: #f8ddd3;
+}
 
 
 
