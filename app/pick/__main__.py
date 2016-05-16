@@ -879,13 +879,14 @@ class Main(object):
 
         # Zoom that screenshot up, and grab a snapsize-sized piece from the middle
         scaled_pb = self.latest_pb.scale_simple(
-            self.snapsize[0] * 2, self.snapsize[1] * 2, GdkPixbuf.InterpType.TILES)
+            self.snapsize[0] * 2, self.snapsize[1] * 2, GdkPixbuf.InterpType.NEAREST)
         scaled_pb_subset = scaled_pb.new_subpixbuf(
-            self.snapsize[0] / 2, self.snapsize[1] / 2, self.snapsize[0], self.snapsize[1])
+            self.snapsize[0] / 2 + 1, self.snapsize[1] / 2 + 1, self.snapsize[0], self.snapsize[1])
 
         # Create the base surface for our cursor
-        base = cairo.ImageSurface(cairo.FORMAT_ARGB32, self.snapsize[0], self.snapsize[1])
+        base = cairo.ImageSurface(cairo.FORMAT_ARGB32, self.snapsize[0] * self.zoomlevel, self.snapsize[1] * self.zoomlevel)
         base_context = cairo.Context(base)
+        base_context.scale(self.zoomlevel, self.zoomlevel)
 
         # Create the circular path on our base surface
         base_context.arc(self.snapsize[0] / 2, self.snapsize[1] / 2, self.snapsize[0] / 2, 0, 2*math.pi)
@@ -899,6 +900,9 @@ class Main(object):
         # Clip to that circular path, keeping the path around for later, and paint the pasted screenshot
         base_context.clip_preserve()
         base_context.paint()
+
+        # set scale back for when we're drawing the borders
+        base_context.scale(1, 1)
 
         # Draw the outside border of the magnifier
         base_context.set_source_rgba(0, 0, 0, 1)
@@ -922,10 +926,12 @@ class Main(object):
         # with a black rectangle under it
         col = self.get_colour_from_pb(self.latest_pb)
         text = self.formatters[self.active_formatter](col[0], col[1], col[2])
-        base_context.set_font_size(9)
+        nfs = 9 + (1 * self.zoomlevel)
+        if nfs > 14: nfs = 14
+        base_context.set_font_size(nfs)
         x_bearing, y_bearing, text_width, text_height, x_advance, y_advance = base_context.text_extents(text)
-        text_draw_x = base.get_width() - text_width
-        text_draw_y = (base.get_height() * 0.95) - text_height
+        text_draw_x = ((base.get_width() / self.zoomlevel) * 0.98) - text_width
+        text_draw_y = ((base.get_height() / self.zoomlevel) * 0.95) - text_height
         rect_border_width = 2
         base_context.rectangle(
             text_draw_x - rect_border_width + x_bearing,
@@ -1124,9 +1130,9 @@ class Main(object):
             if ev.direction == Gdk.ScrollDirection.SMOOTH:
                 return
             if ev.direction == Gdk.ScrollDirection.UP:
-                self.zoomlevel += 0.5
+                self.zoomlevel += 1
             elif ev.direction == Gdk.ScrollDirection.DOWN:
-                self.zoomlevel -= 0.5
+                self.zoomlevel -= 1
                 if self.zoomlevel < 1:
                     self.zoomlevel = 1
             else:
