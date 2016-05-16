@@ -1191,8 +1191,9 @@ class Main(object):
         screenshot = Gdk.pixbuf_get_from_window(root, x, y, w, h)
         return screenshot
 
-
-if __name__ == "__main__":
+def main():
     Main()
     Gtk.main()
+
+if __name__ == "__main__": main()
 
