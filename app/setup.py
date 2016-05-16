@@ -17,7 +17,7 @@ setup(
 
     data_files=[
         (sys.prefix+'/share/applications',['pick.desktop']),
-        (sys.prefix+'/share/pixmaps', ['pick.png'])]
+        (sys.prefix+'/share/pixmaps', ['pick.png'])
     ],
 
     zip_safe=True,
