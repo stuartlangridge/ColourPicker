@@ -1,5 +1,5 @@
 from gi.repository import Gtk, Gdk, GLib, GdkPixbuf, Gio
-import cairo, math, json, os, codecs, StringIO, time
+import cairo, math, json, os, codecs, time
 
 # Colour names list from http://chir.ag/projects/ntc/ntc.js, for which many thanks
 # Used under CC-BY 2.5
@@ -728,7 +728,7 @@ class Main(object):
             about_dialog.set_authors(["Stuart Langridge"])
             about_dialog.set_license_type(Gtk.License.MIT_X11)
             about_dialog.set_website("https://www.kryogenix.org/code/pick")
-            print about_dialog.run()
+            about_dialog.run()
             if about_dialog: about_dialog.destroy()
 
         # The lowlight colour: used for subsidiary text throughout, and looked up from the theme
@@ -1077,6 +1077,7 @@ class Main(object):
 
         while len(self.history) > 5:
             del self.history[0]
+            del self.colour_text_labels[0]
             self.container_vb.get_children()[5].destroy()
 
         if self.empty.get_parent():
@@ -1110,10 +1111,8 @@ class Main(object):
             if f and f in self.formatters.keys():
                 self.active_formatter = f
                 self.fcom.set_active(self.formatters.keys().index(f))
-            else:
-                print "fail", f
         except:
-            print "Failed to restore data"
+            #print "Failed to restore data"
             raise
 
     def load_history(self):
@@ -1161,7 +1160,10 @@ class Main(object):
 
     def change_format(self, cb):
         self.active_formatter = cb.get_model().get_value(cb.get_active_iter(), 0)
+        print "Labels", [lbl.get_text() for lbl in self.colour_text_labels], len(self.colour_text_labels)
+        print "History", [x["colour"] for x in self.history], len(self.history)
         for lbl, hist in zip(self.colour_text_labels, self.history):
+            print "Setting", lbl.get_text(), hist["colour"]
             self.set_colour_label_text(lbl, hist["colour"][0], hist["colour"][1], hist["colour"][2])
         GLib.idle_add(self.serialise)
 
