@@ -1,3 +1,0 @@
-[gui_scripts]
-pick = pick.__main__:main
-
