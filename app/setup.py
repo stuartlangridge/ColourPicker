@@ -30,8 +30,13 @@ setup(
         'setuptools'
     ],
 
-    description='A colour picker for Ubuntu and elementary',
-    long_description=open('../README.md', 'r').read(),
+    description='A colour picker that remembers where you picked colours from',
+    long_description=("Pick lets you pick colours from anywhere on your screen. "
+        "Choose the colour you want and Pick remembers it, names it, and shows you a screenshot "
+        "so you can remember where you got it from. Zoom all the way in to pixels to pick "
+        "just the right one. Show your colours in your choice of format: rgba() or hex, "
+        "CSS or Gdk or Qt, whichever you prefer. Copy to the clipboard ready for pasting into "
+        "code or graphics apps."),
 
     keywords=['pick', 'colour', 'colour picker', 'color', 'color picker'],
 

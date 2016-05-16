@@ -719,7 +719,14 @@ class Main(object):
         self.w.connect("scroll-event", self.magnifier_scrollwheel)
         self.w.connect("key-press-event", self.magnifier_keypress)
         self.w.connect("destroy", Gtk.main_quit)
-        self.pointer = self.w.get_screen().get_display().get_device_manager().get_client_pointer()
+
+        devman = self.w.get_screen().get_display().get_device_manager()
+        self.pointer = devman.get_client_pointer()
+        keyboards = [x for x in devman.list_devices(Gdk.DeviceType.MASTER)
+            if x.get_property("input-source") == Gdk.InputSource.KEYBOARD]
+        self.keyboard = None
+        if len(keyboards) > 0:
+            self.keyboard = keyboards[0] # bit lairy, that, but it should be OK in normal use cases
 
         # The about dialog
         def show_about_dialog(*args):
@@ -864,9 +871,17 @@ class Main(object):
 
     def grab(self, btn):
         self.grabbed = True
-        self.w.set_opacity(0)
-        #GLib.timeout_add(5000, self.ungrab)
-        self.set_magnifier_cursor()
+        self.w.iconify()
+        # we grab the keyboard so that we get the Escape keypress to cancel a pick even though we're iconified
+        if self.keyboard:
+            self.keyboard.grab(
+                self.w.get_window(),
+                Gdk.GrabOwnership.APPLICATION,
+                True,
+                Gdk.EventMask.KEY_PRESS_MASK,
+                None,
+                Gdk.CURRENT_TIME)
+        GLib.timeout_add(150, self.set_magnifier_cursor) # give the window time to iconify
 
     def set_magnifier_cursor(self):
         root = Gdk.get_default_root_window()
@@ -965,8 +980,11 @@ class Main(object):
 
     def ungrab(self, *args, **kwargs):
         self.pointer.ungrab(Gdk.CURRENT_TIME)
+        if self.keyboard: self.keyboard.ungrab(Gdk.CURRENT_TIME)
         self.grabbed = False
-        self.w.set_opacity(1)
+        # deiconify doesn't seem to work, but http://stackoverflow.com/questions/24061029/how-to-deiconify-a-window-after-the-click-of-minimize-button-in-gtk
+        self.w.deiconify()
+        self.w.present()
 
     def get_cache_file(self):
         return os.path.join(GLib.get_user_cache_dir(), "colour-picker.json")
