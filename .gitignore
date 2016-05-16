@@ -9,3 +9,4 @@ pick.egg-info
 debian/pick/
 debian/pick.*
 debian/files
+*.pyc

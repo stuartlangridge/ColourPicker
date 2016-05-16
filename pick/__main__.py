@@ -751,8 +751,15 @@ class Main(object):
         head.props.title = "Pick"
         self.w.set_titlebar(head)
         btngrab = Gtk.Button()
-        icon = Gio.ThemedIcon(name="find-location-symbolic")
-        image = Gtk.Image.new_from_gicon(icon, Gtk.IconSize.BUTTON)
+        icon = Gio.ThemedIcon(name="pick-symbolic")
+        theme_icon = Gtk.IconTheme.get_default().lookup_by_gicon(icon, 0, 0)
+        if theme_icon:
+            # our symbolic icon is included in the theme, so use it
+            image = Gtk.Image.new_from_gicon(icon, Gtk.IconSize.BUTTON)
+        else:
+            # not in the theme, so we're probably running locally; use the local one
+            image = Gtk.Image.new_from_file(os.path.join(os.path.split(__file__)[0], "..", 
+                "data", "icons", "scalable", "apps", "pick-symbolic.svg"))
         btngrab.add(image)
         head.pack_start(btngrab)
         btngrab.connect("clicked", self.grab)
@@ -846,9 +853,17 @@ class Main(object):
         # the empty state, which we always show now because we don't know if there is
         # history until we've loaded it, which is done lazily
         self.empty = Gtk.VBox()
-        icon = Gtk.Image.new_from_icon_name("edit-paste-symbolic", 0)
-        icon.set_property("valign", Gtk.Align.END)
-        self.empty.pack_start(icon, True, True, 0)
+        icon = Gio.ThemedIcon(name="pick")
+        theme_icon = Gtk.IconTheme.get_default().lookup_by_gicon(icon, 0, 0)
+        if theme_icon:
+            # our symbolic icon is included in the theme, so use it
+            image = Gtk.Image.new_from_gicon(icon, Gtk.IconSize.DIALOG)
+        else:
+            # not in the theme, so we're probably running locally; use the local one
+            image = Gtk.Image.new_from_file(os.path.join(os.path.split(__file__)[0], "..", 
+                "data", "icons", "48x48", "apps", "pick.png"))
+        image.set_property("valign", Gtk.Align.END)
+        self.empty.pack_start(image, True, True, 0)
         nocol1 = Gtk.Label("No Colours")
         nocol1.set_name("empty-heading")
         self.empty.pack_start(nocol1, False, False, 12)

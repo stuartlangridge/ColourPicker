@@ -1,7 +1,14 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import sys
+import sys, os
 from setuptools import setup
+
+icons = []
+for dirpath, dirnames, filenames in os.walk("data/icons/"):
+    relpath = dirpath[len("data/icons/"):]
+    if relpath and filenames:
+        icons.append((sys.prefix+"/share/icons/hicolor/"+relpath, [os.path.join(dirpath, x) for x in filenames]))
+
 
 setup(
     name='pick',
@@ -18,7 +25,7 @@ setup(
     data_files=[
         (sys.prefix+'/share/applications',['pick.desktop']),
         (sys.prefix+'/share/pixmaps', ['pick.png'])
-    ],
+    ] + icons,
 
     zip_safe=True,
     include_package_data=True,
