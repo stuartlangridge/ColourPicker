@@ -801,7 +801,7 @@ class Main(object):
         menubar = uimanager.get_widget("/MenuBar")
         box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         box.pack_start(menubar, False, False, 0)
-        self.vb.add(box)
+        self.vb.pack_start(box, False, False, 0)
 
         # the status bar and its formats list
         hb = Gtk.HBox()
@@ -831,7 +831,6 @@ class Main(object):
         hb.pack_start(Gtk.Label("Format:"), False, False, 12)
         hb.pack_start(self.fcom, False, False, 12)
         self.vb.pack_start(hb, False, False, 12)
-
 
         # the box that history items go in
         hb3 = Gtk.HBox()
