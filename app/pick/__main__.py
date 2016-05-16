@@ -1160,10 +1160,7 @@ class Main(object):
 
     def change_format(self, cb):
         self.active_formatter = cb.get_model().get_value(cb.get_active_iter(), 0)
-        print "Labels", [lbl.get_text() for lbl in self.colour_text_labels], len(self.colour_text_labels)
-        print "History", [x["colour"] for x in self.history], len(self.history)
         for lbl, hist in zip(self.colour_text_labels, self.history):
-            print "Setting", lbl.get_text(), hist["colour"]
             self.set_colour_label_text(lbl, hist["colour"][0], hist["colour"][1], hist["colour"][2])
         GLib.idle_add(self.serialise)
 

@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+import sys
 from setuptools import setup
 
 setup(
@@ -11,9 +12,10 @@ setup(
     author='Stuart Langridge',
     author_email='sil@kryogenix.org',
 
-    packages=[],
-    package_dir={},
-    package_data={},
+    packages=['pick'],
+    package_dir={'pick': 'pick'},
+
+    data_files=[(sys.prefix+'/share/applications',['pick.desktop'])],
 
     zip_safe=True,
     include_package_data=True,
@@ -40,4 +42,10 @@ setup(
         'Operating System :: POSIX :: Linux',
         'Topic :: Multimedia :: Graphics'
     ],
+
+    entry_points={
+        'gui_scripts': [
+            'pick = pick.__main__:main',
+        ]
+    },
 )
