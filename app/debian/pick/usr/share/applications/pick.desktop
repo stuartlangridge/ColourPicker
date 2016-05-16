@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=pick
+Comment=Pick is a colour picker
+GenericName=Colour Picker
+Icon=pick.png
+Exec=pick
+Terminal=false

@@ -1,0 +1,17 @@
+Source: pick
+Section: misc
+Priority: extra
+Standards-Version: 3.9.3
+Maintainer: Stuart Langridge <sil@kryogenix.org>
+Build-Depends: python-all, python-setuptools, python-gi, python-pkg-resources, debhelper (>= 7)
+
+Package: pick
+Architecture: all
+Section: misc
+Priority: extra
+Depends: ${python:Depends}, ${misc:Depends}
+Description: A colour picker for Ubuntu and elementary
+ # Pick A colour picker app for Ubuntu and Linux which allows picking any
+ colour on the screen and remembers the last few you picked.  ## Building
+ an Ubuntu package  cd app pkgme debuild  You'll probably need a bunch of
+ build dependencies installed for this to work. (shrug)

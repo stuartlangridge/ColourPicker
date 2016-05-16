@@ -1,0 +1,13 @@
+Package: pick
+Version: 1.0
+Architecture: all
+Maintainer: Stuart Langridge <sil@kryogenix.org>
+Installed-Size: 145
+Depends: python (>= 2.7), python (<< 2.8), python:any (>= 2.7.1-0ubuntu2), python-gi, python-pkg-resources
+Section: misc
+Priority: extra
+Description: A colour picker for Ubuntu and elementary
+ # Pick A colour picker app for Ubuntu and Linux which allows picking any
+ colour on the screen and remembers the last few you picked.  ## Building
+ an Ubuntu package  cd app pkgme debuild  You'll probably need a bunch of
+ build dependencies installed for this to work. (shrug)
