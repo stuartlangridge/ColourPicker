@@ -875,6 +875,13 @@ class Main(object):
         self.w.show_all()
         GLib.idle_add(self.load_history)
 
+    def play_sound(self, soundid):
+        # Normally os.system is a terrible thing to do, because it's insecure and shelling out is bad.
+        # But GI bindings for GSound require Ubuntu 16.04 or later and aren't installed by default,
+        # and we're not passing user input to this function, and it's fire-and-forget, and we don't
+        # care if if fails, so it's fine.
+        os.system("canberra-gtk-play -i %s &" % soundid)
+
     def clear_history(self, button):
         self.history = []
         for c in self.container_vb.get_children():
@@ -1052,6 +1059,7 @@ class Main(object):
             Gtk.Clipboard.get(Gdk.SELECTION_CLIPBOARD).set_text(colour, len(colour))
             label.get_style_context().add_class("highlighted")
             GLib.timeout_add(300, unfade, label)
+            self.play_sound("dialog-information")
 
         eb = Gtk.EventBox()
         hb = Gtk.HBox()
@@ -1185,6 +1193,7 @@ class Main(object):
                 self.snapsize[1] / 2, GdkPixbuf.InterpType.TILES)
             self.add_history_item(colour[0], colour[1], colour[2], pixbuf=pbcopy)
             GLib.idle_add(self.serialise)
+            self.play_sound("camera-shutter")
 
     def get_colour_from_pb(self, pb):
         pixel_data = pb.get_pixels()
