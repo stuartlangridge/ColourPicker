@@ -1,5 +1,5 @@
 from gi.repository import Gtk, Gdk, GLib, GdkPixbuf, Gio
-import cairo, math, json, os, codecs, time
+import cairo, math, json, os, codecs, time, subprocess
 
 # Colour names list from http://chir.ag/projects/ntc/ntc.js, for which many thanks
 # Used under CC-BY 2.5
@@ -876,11 +876,14 @@ class Main(object):
         GLib.idle_add(self.load_history)
 
     def play_sound(self, soundid):
-        # Normally os.system is a terrible thing to do, because it's insecure and shelling out is bad.
-        # But GI bindings for GSound require Ubuntu 16.04 or later and aren't installed by default,
+        # Normally shelling uot is a terrible thing to do, but GI bindings for GSound
+        # require Ubuntu 16.04 or later and aren't installed by default,
         # and we're not passing user input to this function, and it's fire-and-forget, and we don't
         # care if if fails, so it's fine.
-        os.system("canberra-gtk-play -i %s &" % soundid)
+        try:
+            subprocess.Popen(["canberra-gtk-play", "-i", soundid])
+        except:
+            pass
 
     def clear_history(self, button):
         self.history = []
