@@ -1,5 +1,23 @@
 <?php
 
+/*
+
+You wanna call this like this:
+ppadl.php?owner=sil&ppa=pick&pkg=pick-colour-picker,14.04
+
+Owner and PPA are the appropriate parts in the Launchpad URL.
+pkg is a set of substrings, comma-separated, which match the package you want.
+Note that if you get more than one match then this will not redirect;
+instead, it'll just show all the matches and a link to the PPA. You'll
+want to test this and get it right.
+
+Yes, I know screen scraping is awful, but hitting the LP API
+is equally so from PHP.
+
+sil, May 2016
+
+*/
+
 if (!isset($_GET["pkg"]) || !isset($_GET["owner"]) || !isset($_GET["ppa"])) {
     echo "Bad link.";
     die();
