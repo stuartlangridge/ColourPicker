@@ -1,5 +1,9 @@
 from gi.repository import Gtk, Gdk, GLib, GdkPixbuf, Gio
-import cairo, math, json, os, codecs, time, subprocess
+try:
+    from gi.repository import Unity
+except:
+    Unity = False
+import cairo, math, json, os, codecs, time, subprocess, sys
 
 # Colour names list from http://chir.ag/projects/ntc/ntc.js, for which many thanks
 # Used under CC-BY 2.5
@@ -680,6 +684,22 @@ class Main(object):
         self.colour_text_labels = []
         self.grabbed = False
         self.zoomlevel = 1
+
+        # create application
+        self.app = Gtk.Application.new("org.kryogenix.pick", Gio.ApplicationFlags.HANDLES_COMMAND_LINE)
+        self.app.connect("command-line", self.handle_commandline)
+
+    def handle_commandline(self, app, cmdline):
+        if hasattr(self, "w"):
+            # already started
+            if "--about" in cmdline.get_arguments():
+                self.show_about_dialog()
+            return 0
+        # First time startup
+        self.start_everything_first_time()
+        return 0
+
+    def start_everything_first_time(self):
         GLib.set_application_name("Pick")
 
         # The CSS
@@ -711,7 +731,7 @@ class Main(object):
         )
 
         # the window
-        self.w = Gtk.Window()
+        self.w = Gtk.ApplicationWindow.new(self.app)
         self.w.set_title("Pick")
         self.w.set_size_request((self.snapsize[0]/2) * 2 + 200, (self.snapsize[1]/2) * 5 + 200)
         self.w.connect("motion-notify-event", self.magnifier_move)
@@ -727,16 +747,6 @@ class Main(object):
         self.keyboard = None
         if len(keyboards) > 0:
             self.keyboard = keyboards[0] # bit lairy, that, but it should be OK in normal use cases
-
-        # The about dialog
-        def show_about_dialog(*args):
-            about_dialog = Gtk.AboutDialog()
-            about_dialog.set_artists(["Sam Hewitt"])
-            about_dialog.set_authors(["Stuart Langridge"])
-            about_dialog.set_license_type(Gtk.License.MIT_X11)
-            about_dialog.set_website("https://www.kryogenix.org/code/pick")
-            about_dialog.run()
-            if about_dialog: about_dialog.destroy()
 
         # The lowlight colour: used for subsidiary text throughout, and looked up from the theme
         ok, col = self.w.get_style_context().lookup_color("info_fg_color")
@@ -768,40 +778,8 @@ class Main(object):
         self.vb = Gtk.VBox()
 
         # The menu
-        action_group = Gtk.ActionGroup("menu_actions")
-        action_filemenu = Gtk.Action("FileMenu", "File", None, None)
-        action_group.add_action(action_filemenu)
-        action_new = Gtk.Action("FileCapture", "_Capture",
-            "Capture a pixel colour", Gtk.STOCK_NEW)
-        action_new.connect("activate", self.grab)
-        action_group.add_action_with_accel(action_new, None)
-        action_filequit = Gtk.Action("FileQuit", None, None, Gtk.STOCK_QUIT)
-        action_filequit.connect("activate", Gtk.main_quit)
-        action_group.add_action(action_filequit)
-        action_group.add_actions([
-            ("HelpMenu", None, "Help"),
-            ("HelpAbout", None, "About", None, None, show_about_dialog)
-        ])
-        uimanager = Gtk.UIManager()
-        uimanager.add_ui_from_string("""
-            <ui>
-              <menubar name='MenuBar'>
-                <menu action='FileMenu'>
-                  <menuitem action='FileCapture' />
-                  <menuitem action='FileQuit' />
-                </menu>
-                <menu action='HelpMenu'>
-                  <menuitem action='HelpAbout' />
-                </menu>
-              </menubar>
-            </ui>""")
-        accelgroup = uimanager.get_accel_group()
-        self.w.add_accel_group(accelgroup)
-        uimanager.insert_action_group(action_group)
-        menubar = uimanager.get_widget("/MenuBar")
-        box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-        box.pack_start(menubar, False, False, 0)
-        self.vb.pack_start(box, False, False, 0)
+        if Unity:
+            self.add_desktop_menu()
 
         # the status bar and its formats list
         hb = Gtk.HBox()
@@ -870,10 +848,57 @@ class Main(object):
         nocol2.set_property("valign", Gtk.Align.START)
         self.empty.pack_start(nocol2, True, True, 0)
         self.w.add(self.empty)
+        self.w.set_default_icon(image.get_pixbuf())
 
         # and, go
         self.w.show_all()
         GLib.idle_add(self.load_history)
+
+    def add_desktop_menu(self):
+        action_group = Gtk.ActionGroup("menu_actions")
+        action_filemenu = Gtk.Action("FileMenu", "File", None, None)
+        action_group.add_action(action_filemenu)
+        action_new = Gtk.Action("FileCapture", "_Capture",
+            "Capture a pixel colour", Gtk.STOCK_NEW)
+        action_new.connect("activate", self.grab)
+        action_group.add_action_with_accel(action_new, None)
+        action_filequit = Gtk.Action("FileQuit", None, None, Gtk.STOCK_QUIT)
+        action_filequit.connect("activate", Gtk.main_quit)
+        action_group.add_action(action_filequit)
+        action_group.add_actions([
+            ("HelpMenu", None, "Help"),
+            ("HelpAbout", None, "About", None, None, self.show_about_dialog)
+        ])
+        uimanager = Gtk.UIManager()
+        uimanager.add_ui_from_string("""
+            <ui>
+              <menubar name='MenuBar'>
+                <menu action='FileMenu'>
+                  <menuitem action='FileCapture' />
+                  <menuitem action='FileQuit' />
+                </menu>
+                <menu action='HelpMenu'>
+                  <menuitem action='HelpAbout' />
+                </menu>
+              </menubar>
+            </ui>""")
+        accelgroup = uimanager.get_accel_group()
+        self.w.add_accel_group(accelgroup)
+        uimanager.insert_action_group(action_group)
+        menubar = uimanager.get_widget("/MenuBar")
+        box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        box.pack_start(menubar, False, False, 0)
+        self.vb.pack_start(box, False, False, 0)
+
+    def show_about_dialog(self, *args):
+        about_dialog = Gtk.AboutDialog()
+        about_dialog.set_artists(["Sam Hewitt"])
+        about_dialog.set_authors(["Stuart Langridge"])
+        about_dialog.set_license_type(Gtk.License.MIT_X11)
+        about_dialog.set_website("https://www.kryogenix.org/code/pick")
+        about_dialog.run()
+        if about_dialog: about_dialog.destroy()
+
 
     def play_sound(self, soundid):
         # Normally shelling uot is a terrible thing to do, but GI bindings for GSound
@@ -1242,8 +1267,8 @@ class Main(object):
         return screenshot
 
 def main():
-    Main()
-    Gtk.main()
+    m = Main()
+    m.app.run(sys.argv)
 
 if __name__ == "__main__": main()
 
