@@ -5,3 +5,6 @@
 *.changes
 
 *.pyc
+*.egg-info
+debian
+build
