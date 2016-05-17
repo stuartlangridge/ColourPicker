@@ -831,11 +831,11 @@ class Main(object):
         # history until we've loaded it, which is done lazily
         self.empty = Gtk.VBox()
         icon = Gio.ThemedIcon(name="pick")
-        theme_icon = Gtk.IconTheme.get_default().lookup_by_gicon(icon, 0, 0)
+        theme_icon = Gtk.IconTheme.get_default().lookup_by_gicon(icon, 48, 0)
         if theme_icon:
             image = Gtk.Image.new_from_gicon(icon, Gtk.IconSize.DIALOG)
             # and get a pixbuf from it to use as the default icon
-            self.w.set_default_icon_name("pick")
+            self.w.set_default_icon(theme_icon.load_icon())
         else:
             # not in the theme, so we're probably running locally; use the local one
             image = Gtk.Image.new_from_file(os.path.join(os.path.split(__file__)[0], "..", 
