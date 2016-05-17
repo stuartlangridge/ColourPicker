@@ -8,5 +8,5 @@ Exec=pick-colour-picker
 Terminal=false
 
 [Desktop Action AboutDialog]
-_Name=About Pick
+Name=About Pick
 Exec=pick-colour-picker --about
