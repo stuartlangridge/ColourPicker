@@ -214,10 +214,10 @@ article img.aside {
 .dl a {
     display: inline-block;
     border-radius: 4px;
-    border: 2px solid #000044;
+    border: 2px solid #666666;
     padding: 1em;
     margin-bottom: 1em;
-    background: #e8e8ff;
+    background: #eeeeee;
     text-decoration: none;
     white-space: nowrap;
 }
@@ -228,8 +228,18 @@ article img.aside {
     text-indent: -1000em;
     min-width: 8em;
 }
+.dl a.elementary {
+    background: url(../img/elementary-e.svg) center center no-repeat;
+    border-color: #333;
+    background-size: contain;
+    text-indent: -1000em;
+    min-width: 8em;
+}
 .dl a.ubuntu:hover {
     background-color: #f8ddd3;
+}
+.dl a.elementary:hover {
+    background-color: #d3ddf8;
 }
 
 
