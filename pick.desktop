@@ -6,6 +6,7 @@ GenericName=Colour Picker
 Icon=pick.png
 Exec=pick-colour-picker
 Terminal=false
+Actions=AboutDialog;
 
 [Desktop Action AboutDialog]
 Name=About Pick
