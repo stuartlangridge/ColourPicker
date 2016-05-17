@@ -833,12 +833,15 @@ class Main(object):
         icon = Gio.ThemedIcon(name="pick")
         theme_icon = Gtk.IconTheme.get_default().lookup_by_gicon(icon, 0, 0)
         if theme_icon:
-            # our symbolic icon is included in the theme, so use it
             image = Gtk.Image.new_from_gicon(icon, Gtk.IconSize.DIALOG)
+            # and get a pixbuf from it to use as the default icon
+            self.w.set_default_icon_name("pick")
         else:
             # not in the theme, so we're probably running locally; use the local one
             image = Gtk.Image.new_from_file(os.path.join(os.path.split(__file__)[0], "..", 
                 "data", "icons", "48x48", "apps", "pick.png"))
+            # and set this as the default icon
+            self.w.set_default_icon(image.get_pixbuf())
         image.set_property("valign", Gtk.Align.END)
         self.empty.pack_start(image, True, True, 0)
         nocol1 = Gtk.Label("No Colours")
@@ -848,7 +851,6 @@ class Main(object):
         nocol2.set_property("valign", Gtk.Align.START)
         self.empty.pack_start(nocol2, True, True, 0)
         self.w.add(self.empty)
-        self.w.set_default_icon(image.get_pixbuf())
 
         # and, go
         self.w.show_all()
