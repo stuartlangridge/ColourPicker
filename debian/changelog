@@ -1,6 +1,6 @@
-pick (1.0) trusty; urgency=low
+pick-colour-picker (1.0) trusty; urgency=low
 
   * Initial release
 
- -- Stuart Langridge <sil@kryogenix.org>  Mon, 16 May 2016 20:25:33 +0000
+ -- Stuart Langridge <sil@kryogenix.org>  Tue, 17 May 2016 00:09:53 +0000
 

@@ -11,7 +11,7 @@ for dirpath, dirnames, filenames in os.walk("data/icons/"):
 
 
 setup(
-    name='pick',
+    name='pick-colour-picker',
     version='1.0',
 
     url='https://kryogenix.org/code/pick',
@@ -60,7 +60,7 @@ setup(
 
     entry_points={
         'gui_scripts': [
-            'pick = pick.__main__:main',
+            'pick-colour-picker = pick.__main__:main',
         ]
     },
 )

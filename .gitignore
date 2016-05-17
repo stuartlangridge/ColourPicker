@@ -10,3 +10,5 @@ debian/pick/
 debian/pick.*
 debian/files
 *.pyc
+pick_colour_picker.egg-info
+debian/pick-colour-picker*

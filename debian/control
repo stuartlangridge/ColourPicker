@@ -1,11 +1,11 @@
-Source: pick
+Source: pick-colour-picker
 Section: misc
 Priority: extra
 Standards-Version: 3.9.3
 Maintainer: Stuart Langridge <sil@kryogenix.org>
 Build-Depends: python-all, python-setuptools, python-gi, python-pkg-resources, debhelper (>= 7)
 
-Package: pick
+Package: pick-colour-picker
 Architecture: all
 Section: misc
 Priority: extra
