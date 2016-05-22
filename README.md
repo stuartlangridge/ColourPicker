@@ -3,7 +3,6 @@ A colour picker app for Ubuntu and Linux which allows picking any colour on the 
 
 ## Building an Ubuntu package
 
-    cd app
     debuild
 
 You'll probably need a bunch of build dependencies installed for this to work. (shrug)
