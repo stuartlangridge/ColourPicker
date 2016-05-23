@@ -689,19 +689,28 @@ class Main(object):
         self.app = Gtk.Application.new("org.kryogenix.pick", Gio.ApplicationFlags.HANDLES_COMMAND_LINE)
         self.app.connect("command-line", self.handle_commandline)
 
+    def pick_after_window_mapped(self, window, _):
+        window.disconnect_by_func(self.pick_after_window_mapped)
+        self.grab(self.btngrab)
+
     def handle_commandline(self, app, cmdline):
         if hasattr(self, "w"):
             # already started
             if "--about" in cmdline.get_arguments():
                 self.show_about_dialog()
+            if "--pick" in cmdline.get_arguments():
+                GLib.idle_add(self.grab, self.btngrab)
             return 0
         # First time startup
-        self.start_everything_first_time()
+        if "--pick" in cmdline.get_arguments():
+            self.start_everything_first_time(self.pick_after_window_mapped)
+        else:
+            self.start_everything_first_time()
         if "--about" in cmdline.get_arguments():
             self.show_about_dialog()
         return 0
 
-    def start_everything_first_time(self):
+    def start_everything_first_time(self, on_window_map=None):
         GLib.set_application_name("Pick")
 
         # The CSS
@@ -741,6 +750,7 @@ class Main(object):
         self.w.connect("scroll-event", self.magnifier_scrollwheel)
         self.w.connect("key-press-event", self.magnifier_keypress)
         self.w.connect("destroy", Gtk.main_quit)
+        if on_window_map: self.w.connect("map-event", on_window_map)
 
         devman = self.w.get_screen().get_display().get_device_manager()
         self.pointer = devman.get_client_pointer()
@@ -763,6 +773,7 @@ class Main(object):
         head.props.title = "Pick"
         self.w.set_titlebar(head)
         btngrab = Gtk.Button()
+        self.btngrab = btngrab
         icon = Gio.ThemedIcon(name="pick-symbolic")
         theme_icon = Gtk.IconTheme.get_default().lookup_by_gicon(icon, 0, 0)
         if theme_icon:

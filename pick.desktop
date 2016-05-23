@@ -2,13 +2,20 @@
 Type=Application
 Name=pick
 Comment=Pick is a colour picker
+Comment[en_us]=Pick is a color picker
 GenericName=Colour Picker
+GenericName[en_us]=Color Picker
 Icon=pick.png
 Exec=pick-colour-picker
 Terminal=false
-Actions=AboutDialog;
+Actions=AboutDialog;PickFirst
 Keywords=color;colour;picker
 
 [Desktop Action AboutDialog]
 Name=About Pick
 Exec=pick-colour-picker --about
+
+[Desktop Action PickFirst]
+Name=Pick a colour
+Name[en_us]=Pick a color
+Exec=pick-colour-picker --pick
