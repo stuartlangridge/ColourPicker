@@ -697,6 +697,8 @@ class Main(object):
             return 0
         # First time startup
         self.start_everything_first_time()
+        if "--about" in cmdline.get_arguments():
+            self.show_about_dialog()
         return 0
 
     def start_everything_first_time(self):
