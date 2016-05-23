@@ -7,6 +7,7 @@ Icon=pick.png
 Exec=pick-colour-picker
 Terminal=false
 Actions=AboutDialog;
+Keywords=color;colour;picker
 
 [Desktop Action AboutDialog]
 Name=About Pick
