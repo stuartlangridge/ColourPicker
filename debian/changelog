@@ -4,6 +4,8 @@ pick-colour-picker (1.2) trusty; urgency=low
 
  -- Stuart Langridge <sil@kryogenix.org>  Tue, 24 May 2016 22:31:01 +0000
 
+pick-colour-picker (1.1) trusty; urgency=low
+
   * Make --about work even if the app isn't running
   * Add en_us translations of the word "colour" in the desktop file
   * Add --pick command line option to launch straight into picking
