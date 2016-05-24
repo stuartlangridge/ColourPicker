@@ -713,34 +713,6 @@ class Main(object):
     def start_everything_first_time(self, on_window_map=None):
         GLib.set_application_name("Pick")
 
-        # The CSS
-        style_provider = Gtk.CssProvider()
-        css = """
-            GtkLabel { transition: 250ms ease-in-out; }
-            GtkLabel.highlighted { background-color: rgba(255, 255, 0, 0.4); }
-            GtkLabel#empty-heading { font-size: 200%; }
-            GtkFrame {
-                background-color: rgba(255, 255, 255, 0.6);
-            }
-            GtkEventBox GtkFrame {
-                border-width: 0 0 1px 0;
-                padding: 6px 0;
-            }
-            GtkEventBox:focused {
-                background: rgba(0, 0, 0, 0.2);
-            }
-            GtkEventBox:nth-child(5) GtkFrame {
-                border-width: 0;
-                padding: 6px 0;
-            }
-        """
-        style_provider.load_from_data(css)
-        Gtk.StyleContext.add_provider_for_screen(
-            Gdk.Screen.get_default(), 
-            style_provider,
-            Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
-        )
-
         # the window
         self.w = Gtk.ApplicationWindow.new(self.app)
         self.w.set_title("Pick")
@@ -761,11 +733,49 @@ class Main(object):
             self.keyboard = keyboards[0] # bit lairy, that, but it should be OK in normal use cases
 
         # The lowlight colour: used for subsidiary text throughout, and looked up from the theme
-        ok, col = self.w.get_style_context().lookup_color("info_fg_color")
-        if ok and False:
+        ok, col = self.w.get_style_context().lookup_color("theme_text_color")
+        if ok:
             self.lowlight_rgba = col
         else:
             self.lowlight_rgba = Gdk.RGBA(red=0.5, green=0.5, blue=0.5, alpha=1)
+        ok, col = self.w.get_style_context().lookup_color("theme_fg_color")
+        if ok:
+            self.highlight_rgba = col
+        else:
+            self.highlight_rgba = Gdk.RGBA(red=0.5, green=0.5, blue=0.5, alpha=1)
+
+        # The CSS
+        highlight_average = (self.highlight_rgba.red + self.highlight_rgba.green + self.highlight_rgba.blue) / 3
+        if highlight_average > 0.5:
+            ROWBGCOL = "rgba(0, 0, 0, 0.6)"
+        else:
+            ROWBGCOL = "rgba(255, 255, 255, 0.6)"
+        style_provider = Gtk.CssProvider()
+        css = """
+            GtkLabel { transition: 250ms ease-in-out; }
+            GtkLabel.highlighted { background-color: rgba(255, 255, 0, 0.4); }
+            GtkLabel#empty-heading { font-size: 200%; }
+            GtkFrame {
+                background-color: ROWBGCOL
+            }
+            GtkEventBox GtkFrame {
+                border-width: 0 0 1px 0;
+                padding: 6px 0;
+            }
+            GtkEventBox:focused {
+                background: rgba(0, 0, 0, 0.2);
+            }
+            GtkEventBox:nth-child(5) GtkFrame {
+                border-width: 0;
+                padding: 6px 0;
+            }
+        """.replace("ROWBGCOL", ROWBGCOL)
+        style_provider.load_from_data(css)
+        Gtk.StyleContext.add_provider_for_screen(
+            Gdk.Screen.get_default(), 
+            style_provider,
+            Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
+        )
 
         # the headerbar
         head = Gtk.HeaderBar()
@@ -1177,7 +1187,11 @@ class Main(object):
         self.btnclear.set_sensitive(True)
 
     def set_colour_label_text(self, lbl, r, g, b):
-        lbl.set_markup('%s\n<span color="%s">%s</span>' % (
+        lbl.set_markup('<span color="%s">%s</span>\n<span color="%s">%s</span>' % (
+            self.formatters["CSS hex"](
+                255 * self.highlight_rgba.red,
+                255 * self.highlight_rgba.green,
+                255 * self.highlight_rgba.blue),
             self.closest_name(r, g, b),
             self.formatters["CSS hex"](
                 255 * self.lowlight_rgba.red,
