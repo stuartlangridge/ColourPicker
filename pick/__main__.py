@@ -683,7 +683,7 @@ class Main(object):
         self.history = []
         self.colour_text_labels = []
         self.grabbed = False
-        self.zoomlevel = 1
+        self.zoomlevel = 2
 
         # create application
         self.app = Gtk.Application.new("org.kryogenix.pick", Gio.ApplicationFlags.HANDLES_COMMAND_LINE)
@@ -1013,15 +1013,23 @@ class Main(object):
 
         # Get the current colour and write it on the magnifier, in the default font
         # with a black rectangle under it
+        rect_border_width = 2
         col = self.get_colour_from_pb(self.latest_pb)
         text = self.formatters[self.active_formatter](col[0], col[1], col[2])
-        nfs = 9 + (1 * self.zoomlevel)
-        if nfs > 14: nfs = 14
+        # calculate maximum text size
+        nfs = 6
+        max_rwidth = self.snapsize[0] * 0.7
+        while True:
+            x_bearing, y_bearing, text_width, text_height, x_advance, y_advance = base_context.text_extents(text)
+            rwidth = text_width + (2 * rect_border_width)
+            if rwidth > max_rwidth:
+                nfs = nfs - 1
+                break
+            nfs += 1
         base_context.set_font_size(nfs)
         x_bearing, y_bearing, text_width, text_height, x_advance, y_advance = base_context.text_extents(text)
         text_draw_x = ((base.get_width() / self.zoomlevel) * 0.98) - text_width
         text_draw_y = ((base.get_height() / self.zoomlevel) * 0.95) - text_height
-        rect_border_width = 2
         base_context.rectangle(
             text_draw_x - rect_border_width + x_bearing,
             text_draw_y - rect_border_width + y_bearing,
@@ -1033,6 +1041,15 @@ class Main(object):
         base_context.set_source_rgba(255, 255, 255, 1.0)
         base_context.move_to(text_draw_x, text_draw_y)
         base_context.show_text(text)
+        # and draw colour swatch next to colour name
+        base_context.rectangle(
+            text_draw_x - rect_border_width + x_bearing - (text_height + (2 * rect_border_width)),
+            text_draw_y - rect_border_width + y_bearing,
+            text_height + (2 * rect_border_width),
+            text_height + (2 * rect_border_width)
+        )
+        base_context.set_source_rgba(col[0]/255.0, col[1]/255.0, col[2]/255.0, 1.0)
+        base_context.fill()
 
         # turn the base surface into a pixbuf and thence a cursor
         drawn_pb = Gdk.pixbuf_get_from_surface(base, 0, 0, base.get_width(), base.get_height())
@@ -1228,10 +1245,12 @@ class Main(object):
                 return
             if ev.direction == Gdk.ScrollDirection.UP:
                 self.zoomlevel += 1
+                if self.zoomlevel > 7:
+                    self.zoomlevel = 7
             elif ev.direction == Gdk.ScrollDirection.DOWN:
                 self.zoomlevel -= 1
-                if self.zoomlevel < 1:
-                    self.zoomlevel = 1
+                if self.zoomlevel < 2:
+                    self.zoomlevel = 2
             else:
                 return
             self.set_magnifier_cursor()
