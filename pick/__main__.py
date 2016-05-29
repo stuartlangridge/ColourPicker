@@ -684,6 +684,9 @@ class Main(object):
         self.colour_text_labels = []
         self.grabbed = False
         self.zoomlevel = 2
+        self.resize_timeout = None
+        self.window_metrics = None
+        self.window_metrics_restored = False
 
         # create application
         self.app = Gtk.Application.new("org.kryogenix.pick", Gio.ApplicationFlags.HANDLES_COMMAND_LINE)
@@ -721,6 +724,7 @@ class Main(object):
         self.w.connect("button-press-event", self.magnifier_clicked)
         self.w.connect("scroll-event", self.magnifier_scrollwheel)
         self.w.connect("key-press-event", self.magnifier_keypress)
+        self.w.connect("configure-event", self.window_configure)
         self.w.connect("destroy", Gtk.main_quit)
         if on_window_map: self.w.connect("map-event", on_window_map)
 
@@ -878,6 +882,34 @@ class Main(object):
         # and, go
         self.w.show_all()
         GLib.idle_add(self.load_history)
+
+    def window_configure(self, window, ev):
+        if not self.window_metrics_restored: return
+        if self.resize_timeout:
+            GLib.source_remove(self.resize_timeout)
+        self.resize_timeout = GLib.timeout_add_seconds(1, self.save_window_metrics,
+            {"x":ev.x, "y":ev.y, "w":ev.width, "h":ev.height})
+
+    def save_window_metrics(self, props):
+        scr = self.w.get_screen()
+        sw = float(scr.get_width())
+        sh = float(scr.get_height())
+        # We save window dimensions as fractions of the screen dimensions, to cope with screen
+        # resolution changes while we weren't running
+        self.window_metrics = {
+            "ww": props["w"] / sw,
+            "wh": props["h"] / sh,
+            "wx": props["x"] / sw,
+            "wy": props["y"] / sh
+        }
+        self.serialise()
+
+    def restore_window_metrics(self, metrics):
+        scr = self.w.get_screen()
+        sw = float(scr.get_width())
+        sh = float(scr.get_height())
+        self.w.set_size_request(int(sw * metrics["ww"]), int(sh * metrics["wh"]))
+        self.w.move(int(sw * metrics["wx"]), int(sh * metrics["wy"]))
 
     def add_desktop_menu(self):
         action_group = Gtk.ActionGroup("menu_actions")
@@ -1087,7 +1119,10 @@ class Main(object):
         # five small images, so life's too short to hammer on this; we'll write with
         # Python and take the hit.
         fp = codecs.open(self.get_cache_file(), encoding="utf8", mode="w")
-        json.dump({"colours": self.history, "formatter": self.active_formatter}, fp, indent=2)
+        data = {"colours": self.history, "formatter": self.active_formatter}
+        if self.window_metrics:
+            data["metrics"] = self.window_metrics
+        json.dump(data, fp, indent=2)
         fp.close()
 
     def rounded_path(self, surface, w, h):
@@ -1231,6 +1266,11 @@ class Main(object):
             if f and f in self.formatters.keys():
                 self.active_formatter = f
                 self.fcom.set_active(self.formatters.keys().index(f))
+            metrics = data.get("metrics")
+            if metrics:
+                self.restore_window_metrics(metrics)
+            self.window_metrics_restored = True
+
         except:
             #print "Failed to restore data"
             raise
