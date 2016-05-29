@@ -748,7 +748,7 @@ class Main(object):
         if ok:
             self.highlight_rgba = col
         else:
-            self.highlight_rgba = Gdk.RGBA(red=0.5, green=0.5, blue=0.5, alpha=1)
+            self.highlight_rgba = self.w.get_style_context().get_color(Gtk.StateFlags.NORMAL)
 
         # The CSS
         highlight_average = (self.highlight_rgba.red + self.highlight_rgba.green + self.highlight_rgba.blue) / 3
