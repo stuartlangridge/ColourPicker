@@ -1058,7 +1058,6 @@ class Main(object):
         while True:
             x_bearing, y_bearing, text_width, text_height, x_advance, y_advance = base_context.text_extents(text)
             rwidth = text_width + (2 * rect_border_width)
-            print rwidth, max_rwidth
             if rwidth > max_rwidth:
                 nfs = nfs - 1
                 break
