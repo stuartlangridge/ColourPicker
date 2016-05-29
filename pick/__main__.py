@@ -5,7 +5,7 @@ except:
     Unity = False
 import cairo, math, json, os, codecs, time, subprocess, sys
 
-__VERSION__ = "1.3"
+__VERSION__ = "1.4"
 
 # Colour names list from http://chir.ag/projects/ntc/ntc.js, for which many thanks
 # Used under CC-BY 2.5
@@ -1053,14 +1053,23 @@ class Main(object):
         text = self.formatters[self.active_formatter](col[0], col[1], col[2])
         # calculate maximum text size
         nfs = 6
+        loopcount = 0
         max_rwidth = self.snapsize[0] * 0.7
         while True:
             x_bearing, y_bearing, text_width, text_height, x_advance, y_advance = base_context.text_extents(text)
             rwidth = text_width + (2 * rect_border_width)
+            print rwidth, max_rwidth
             if rwidth > max_rwidth:
                 nfs = nfs - 1
                 break
             nfs += 1
+            base_context.set_font_size(nfs)
+            loopcount += 1
+            if loopcount > 50:
+                # probably an infinite loop
+                nfs = 6
+                break
+
         base_context.set_font_size(nfs)
         x_bearing, y_bearing, text_width, text_height, x_advance, y_advance = base_context.text_extents(text)
         text_draw_x = ((base.get_width() / self.zoomlevel) * 0.98) - text_width
