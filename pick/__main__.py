@@ -5,6 +5,8 @@ except:
     Unity = False
 import cairo, math, json, os, codecs, time, subprocess, sys
 
+__VERSION__ = "1.3"
+
 # Colour names list from http://chir.ag/projects/ntc/ntc.js, for which many thanks
 # Used under CC-BY 2.5
 
@@ -951,6 +953,7 @@ class Main(object):
         about_dialog = Gtk.AboutDialog()
         about_dialog.set_artists(["Sam Hewitt"])
         about_dialog.set_authors(["Stuart Langridge"])
+        about_dialog.set_version(__VERSION__)
         about_dialog.set_license_type(Gtk.License.MIT_X11)
         about_dialog.set_website("https://www.kryogenix.org/code/pick")
         about_dialog.run()

@@ -1,3 +1,14 @@
+pick-colour-picker (1.3) trusty; urgency=low
+
+  * Save window size and position
+  * Cap zoom levels
+  * Show a colour swatch in the magnifier
+  * Properly calculate font width in the magnifier
+  * Zoom in one more step by default
+  * Add version number to about dialog
+
+ -- Stuart Langridge <sil@kryogenix.org>  Tue, 24 May 2016 22:31:01 +0000
+
 pick-colour-picker (1.2) trusty; urgency=low
 
   * Attempt to handle dark themes
