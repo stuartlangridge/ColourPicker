@@ -23,8 +23,8 @@ setup(
     package_dir={'pick': 'pick'},
 
     data_files=[
-        (sys.prefix+'/share/applications',['pick.desktop']),
-        (sys.prefix+'/share/pixmaps', ['pick.png'])
+        (sys.prefix+'/share/applications',['pick-colour-picker.desktop']),
+        (sys.prefix+'/share/pixmaps', ['pick-colour-picker.png'])
     ] + icons,
 
     zip_safe=True,
