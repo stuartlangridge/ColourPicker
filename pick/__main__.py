@@ -5,7 +5,7 @@ except:
     Unity = False
 import cairo, math, json, os, codecs, time, subprocess, sys
 
-__VERSION__ = "1.4"
+__VERSION__ = "1.5"
 
 # Colour names list from http://chir.ag/projects/ntc/ntc.js, for which many thanks
 # Used under CC-BY 2.5
@@ -790,7 +790,7 @@ class Main(object):
         self.w.set_titlebar(head)
         btngrab = Gtk.Button()
         self.btngrab = btngrab
-        icon = Gio.ThemedIcon(name="pick-symbolic")
+        icon = Gio.ThemedIcon(name="pick-colour-picker-symbolic")
         theme_icon = Gtk.IconTheme.get_default().lookup_by_gicon(icon, 0, 0)
         if theme_icon:
             # our symbolic icon is included in the theme, so use it
@@ -798,7 +798,7 @@ class Main(object):
         else:
             # not in the theme, so we're probably running locally; use the local one
             image = Gtk.Image.new_from_file(os.path.join(os.path.split(__file__)[0], "..", 
-                "data", "icons", "scalable", "apps", "pick-symbolic.svg"))
+                "data", "icons", "scalable", "apps", "pick-colour-picker-symbolic.svg"))
         btngrab.add(image)
         head.pack_start(btngrab)
         btngrab.connect("clicked", self.grab)
@@ -859,7 +859,7 @@ class Main(object):
         # the empty state, which we always show now because we don't know if there is
         # history until we've loaded it, which is done lazily
         self.empty = Gtk.VBox()
-        icon = Gio.ThemedIcon(name="pick")
+        icon = Gio.ThemedIcon(name="pick-colour-picker")
         theme_icon = Gtk.IconTheme.get_default().lookup_by_gicon(icon, 48, 0)
         if theme_icon:
             image = Gtk.Image.new_from_gicon(icon, Gtk.IconSize.DIALOG)
@@ -868,7 +868,7 @@ class Main(object):
         else:
             # not in the theme, so we're probably running locally; use the local one
             image = Gtk.Image.new_from_file(os.path.join(os.path.split(__file__)[0], "..", 
-                "data", "icons", "48x48", "apps", "pick.png"))
+                "data", "icons", "48x48", "apps", "pick-colour-picker.png"))
             # and set this as the default icon
             self.w.set_default_icon(image.get_pixbuf())
         image.set_property("valign", Gtk.Align.END)

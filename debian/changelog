@@ -1,3 +1,9 @@
+pick-colour-picker (1.5) trusty; urgency=low
+
+  * Change icon and desktop file names to pick-colour-picker to match the executable, as per HEXcube PR and dobey recommendation
+
+ -- Stuart Langridge <sil@kryogenix.org>  Wed, 1 Jun 2016 12:38:01 +0000
+
 pick-colour-picker (1.4) trusty; urgency=low
 
   * Brown paper bag bug; if the font size never got big enough, we hung in an infinite loop
