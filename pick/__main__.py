@@ -5,6 +5,8 @@ except:
     Unity = False
 import cairo, math, json, os, codecs, time, subprocess, sys
 
+__VERSION__ = "1.4"
+
 # Colour names list from http://chir.ag/projects/ntc/ntc.js, for which many thanks
 # Used under CC-BY 2.5
 
@@ -683,7 +685,10 @@ class Main(object):
         self.history = []
         self.colour_text_labels = []
         self.grabbed = False
-        self.zoomlevel = 1
+        self.zoomlevel = 2
+        self.resize_timeout = None
+        self.window_metrics = None
+        self.window_metrics_restored = False
 
         # create application
         self.app = Gtk.Application.new("org.kryogenix.pick", Gio.ApplicationFlags.HANDLES_COMMAND_LINE)
@@ -713,34 +718,6 @@ class Main(object):
     def start_everything_first_time(self, on_window_map=None):
         GLib.set_application_name("Pick")
 
-        # The CSS
-        style_provider = Gtk.CssProvider()
-        css = """
-            GtkLabel { transition: 250ms ease-in-out; }
-            GtkLabel.highlighted { background-color: rgba(255, 255, 0, 0.4); }
-            GtkLabel#empty-heading { font-size: 200%; }
-            GtkFrame {
-                background-color: rgba(255, 255, 255, 0.6);
-            }
-            GtkEventBox GtkFrame {
-                border-width: 0 0 1px 0;
-                padding: 6px 0;
-            }
-            GtkEventBox:focused {
-                background: rgba(0, 0, 0, 0.2);
-            }
-            GtkEventBox:nth-child(5) GtkFrame {
-                border-width: 0;
-                padding: 6px 0;
-            }
-        """
-        style_provider.load_from_data(css)
-        Gtk.StyleContext.add_provider_for_screen(
-            Gdk.Screen.get_default(), 
-            style_provider,
-            Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
-        )
-
         # the window
         self.w = Gtk.ApplicationWindow.new(self.app)
         self.w.set_title("Pick")
@@ -749,6 +726,7 @@ class Main(object):
         self.w.connect("button-press-event", self.magnifier_clicked)
         self.w.connect("scroll-event", self.magnifier_scrollwheel)
         self.w.connect("key-press-event", self.magnifier_keypress)
+        self.w.connect("configure-event", self.window_configure)
         self.w.connect("destroy", Gtk.main_quit)
         if on_window_map: self.w.connect("map-event", on_window_map)
 
@@ -761,11 +739,49 @@ class Main(object):
             self.keyboard = keyboards[0] # bit lairy, that, but it should be OK in normal use cases
 
         # The lowlight colour: used for subsidiary text throughout, and looked up from the theme
-        ok, col = self.w.get_style_context().lookup_color("info_fg_color")
-        if ok and False:
+        ok, col = self.w.get_style_context().lookup_color("theme_text_color")
+        if ok:
             self.lowlight_rgba = col
         else:
             self.lowlight_rgba = Gdk.RGBA(red=0.5, green=0.5, blue=0.5, alpha=1)
+        ok, col = self.w.get_style_context().lookup_color("theme_fg_color")
+        if ok:
+            self.highlight_rgba = col
+        else:
+            self.highlight_rgba = self.w.get_style_context().get_color(Gtk.StateFlags.NORMAL)
+
+        # The CSS
+        highlight_average = (self.highlight_rgba.red + self.highlight_rgba.green + self.highlight_rgba.blue) / 3
+        if highlight_average > 0.5:
+            ROWBGCOL = "rgba(0, 0, 0, 0.6)"
+        else:
+            ROWBGCOL = "rgba(255, 255, 255, 0.6)"
+        style_provider = Gtk.CssProvider()
+        css = """
+            GtkLabel { transition: 250ms ease-in-out; }
+            GtkLabel.highlighted { background-color: rgba(255, 255, 0, 0.4); }
+            GtkLabel#empty-heading { font-size: 200%; }
+            GtkFrame {
+                background-color: ROWBGCOL
+            }
+            GtkEventBox GtkFrame {
+                border-width: 0 0 1px 0;
+                padding: 6px 0;
+            }
+            GtkEventBox:focused {
+                background: rgba(0, 0, 0, 0.2);
+            }
+            GtkEventBox:nth-child(5) GtkFrame {
+                border-width: 0;
+                padding: 6px 0;
+            }
+        """.replace("ROWBGCOL", ROWBGCOL)
+        style_provider.load_from_data(css)
+        Gtk.StyleContext.add_provider_for_screen(
+            Gdk.Screen.get_default(), 
+            style_provider,
+            Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
+        )
 
         # the headerbar
         head = Gtk.HeaderBar()
@@ -869,6 +885,34 @@ class Main(object):
         self.w.show_all()
         GLib.idle_add(self.load_history)
 
+    def window_configure(self, window, ev):
+        if not self.window_metrics_restored: return
+        if self.resize_timeout:
+            GLib.source_remove(self.resize_timeout)
+        self.resize_timeout = GLib.timeout_add_seconds(1, self.save_window_metrics,
+            {"x":ev.x, "y":ev.y, "w":ev.width, "h":ev.height})
+
+    def save_window_metrics(self, props):
+        scr = self.w.get_screen()
+        sw = float(scr.get_width())
+        sh = float(scr.get_height())
+        # We save window dimensions as fractions of the screen dimensions, to cope with screen
+        # resolution changes while we weren't running
+        self.window_metrics = {
+            "ww": props["w"] / sw,
+            "wh": props["h"] / sh,
+            "wx": props["x"] / sw,
+            "wy": props["y"] / sh
+        }
+        self.serialise()
+
+    def restore_window_metrics(self, metrics):
+        scr = self.w.get_screen()
+        sw = float(scr.get_width())
+        sh = float(scr.get_height())
+        self.w.set_size_request(int(sw * metrics["ww"]), int(sh * metrics["wh"]))
+        self.w.move(int(sw * metrics["wx"]), int(sh * metrics["wy"]))
+
     def add_desktop_menu(self):
         action_group = Gtk.ActionGroup("menu_actions")
         action_filemenu = Gtk.Action("FileMenu", "File", None, None)
@@ -909,6 +953,7 @@ class Main(object):
         about_dialog = Gtk.AboutDialog()
         about_dialog.set_artists(["Sam Hewitt"])
         about_dialog.set_authors(["Stuart Langridge"])
+        about_dialog.set_version(__VERSION__)
         about_dialog.set_license_type(Gtk.License.MIT_X11)
         about_dialog.set_website("https://www.kryogenix.org/code/pick")
         about_dialog.run()
@@ -1003,15 +1048,31 @@ class Main(object):
 
         # Get the current colour and write it on the magnifier, in the default font
         # with a black rectangle under it
+        rect_border_width = 2
         col = self.get_colour_from_pb(self.latest_pb)
         text = self.formatters[self.active_formatter](col[0], col[1], col[2])
-        nfs = 9 + (1 * self.zoomlevel)
-        if nfs > 14: nfs = 14
+        # calculate maximum text size
+        nfs = 6
+        loopcount = 0
+        max_rwidth = self.snapsize[0] * 0.7
+        while True:
+            x_bearing, y_bearing, text_width, text_height, x_advance, y_advance = base_context.text_extents(text)
+            rwidth = text_width + (2 * rect_border_width)
+            if rwidth > max_rwidth:
+                nfs = nfs - 1
+                break
+            nfs += 1
+            base_context.set_font_size(nfs)
+            loopcount += 1
+            if loopcount > 50:
+                # probably an infinite loop
+                nfs = 6
+                break
+
         base_context.set_font_size(nfs)
         x_bearing, y_bearing, text_width, text_height, x_advance, y_advance = base_context.text_extents(text)
         text_draw_x = ((base.get_width() / self.zoomlevel) * 0.98) - text_width
         text_draw_y = ((base.get_height() / self.zoomlevel) * 0.95) - text_height
-        rect_border_width = 2
         base_context.rectangle(
             text_draw_x - rect_border_width + x_bearing,
             text_draw_y - rect_border_width + y_bearing,
@@ -1023,6 +1084,15 @@ class Main(object):
         base_context.set_source_rgba(255, 255, 255, 1.0)
         base_context.move_to(text_draw_x, text_draw_y)
         base_context.show_text(text)
+        # and draw colour swatch next to colour name
+        base_context.rectangle(
+            text_draw_x - rect_border_width + x_bearing - (text_height + (2 * rect_border_width)),
+            text_draw_y - rect_border_width + y_bearing,
+            text_height + (2 * rect_border_width),
+            text_height + (2 * rect_border_width)
+        )
+        base_context.set_source_rgba(col[0]/255.0, col[1]/255.0, col[2]/255.0, 1.0)
+        base_context.fill()
 
         # turn the base surface into a pixbuf and thence a cursor
         drawn_pb = Gdk.pixbuf_get_from_surface(base, 0, 0, base.get_width(), base.get_height())
@@ -1060,7 +1130,10 @@ class Main(object):
         # five small images, so life's too short to hammer on this; we'll write with
         # Python and take the hit.
         fp = codecs.open(self.get_cache_file(), encoding="utf8", mode="w")
-        json.dump({"colours": self.history, "formatter": self.active_formatter}, fp, indent=2)
+        data = {"colours": self.history, "formatter": self.active_formatter}
+        if self.window_metrics:
+            data["metrics"] = self.window_metrics
+        json.dump(data, fp, indent=2)
         fp.close()
 
     def rounded_path(self, surface, w, h):
@@ -1177,7 +1250,11 @@ class Main(object):
         self.btnclear.set_sensitive(True)
 
     def set_colour_label_text(self, lbl, r, g, b):
-        lbl.set_markup('%s\n<span color="%s">%s</span>' % (
+        lbl.set_markup('<span color="%s">%s</span>\n<span color="%s">%s</span>' % (
+            self.formatters["CSS hex"](
+                255 * self.highlight_rgba.red,
+                255 * self.highlight_rgba.green,
+                255 * self.highlight_rgba.blue),
             self.closest_name(r, g, b),
             self.formatters["CSS hex"](
                 255 * self.lowlight_rgba.red,
@@ -1200,6 +1277,11 @@ class Main(object):
             if f and f in self.formatters.keys():
                 self.active_formatter = f
                 self.fcom.set_active(self.formatters.keys().index(f))
+            metrics = data.get("metrics")
+            if metrics:
+                self.restore_window_metrics(metrics)
+            self.window_metrics_restored = True
+
         except:
             #print "Failed to restore data"
             raise
@@ -1214,10 +1296,12 @@ class Main(object):
                 return
             if ev.direction == Gdk.ScrollDirection.UP:
                 self.zoomlevel += 1
+                if self.zoomlevel > 7:
+                    self.zoomlevel = 7
             elif ev.direction == Gdk.ScrollDirection.DOWN:
                 self.zoomlevel -= 1
-                if self.zoomlevel < 1:
-                    self.zoomlevel = 1
+                if self.zoomlevel < 2:
+                    self.zoomlevel = 2
             else:
                 return
             self.set_magnifier_cursor()
