@@ -876,10 +876,7 @@ class Main(object):
 
     def get_colour_from_pb(self, pb):
         pixel_data = pb.get_pixels()
-        offset = (
-            (pb.get_rowstride() * (self.snapsize[1] / 2)) +
-            ((self.latest_pb.get_rowstride() / self.snapsize[0]) *
-                (self.snapsize[0] / 2)))
+        offset = pb.get_rowstride() * pb.get_height() / 2 + (pb.get_rowstride() / 2)
         offset = int(offset)
         rgb_vals = []
         # pixel data gets returned as bytes or int depending
