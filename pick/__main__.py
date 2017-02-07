@@ -151,6 +151,21 @@ class Main(object):
         if on_window_map:
             self.w.connect("map-event", on_window_map)
 
+        # Get the actual cursor scale from gconf so we don't get over the size limit (issue #6)
+        try:
+            cursor_scale = 1.0
+            if os.getenv("CURSOR_SCALE") != None:
+                cursor_scale = float(os.getenv("CURSOR_SCALE"))
+            else:
+                cursor_scale = self.w.get_screen().get_display().get_default_cursor_size() / float(Gio.Settings("org.gnome.desktop.interface").get_int("cursor-size"))
+            if cursor_scale != 1.0:
+                cursor_scaled_snapsize = int(math.ceil(self.snapsize[0] / 2 / cursor_scale) * 2)
+                print "Adjusted cursor size: " + str(cursor_scaled_snapsize)
+                self.snapsize = (cursor_scaled_snapsize, cursor_scaled_snapsize)
+        except:
+            # No gnome/dconf?!
+            print "Couldn't determine correct cursor size. If you experience any flickering, try launching with CURSOR_SCALE=2"
+
         devman = self.w.get_screen().get_display().get_device_manager()
         self.pointer = devman.get_client_pointer()
         keyboards = [
