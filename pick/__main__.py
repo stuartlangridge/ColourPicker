@@ -159,7 +159,10 @@ class Main(object):
             else:
                 cursor_scale = self.w.get_screen().get_display().get_default_cursor_size() / float(Gio.Settings("org.gnome.desktop.interface").get_int("cursor-size"))
             if cursor_scale != 1.0:
-                cursor_scaled_snapsize = int(math.ceil(self.snapsize[0] / 2 / cursor_scale) * 2)
+                cursor_scaled_snapsize = min([
+                    int(math.ceil(self.snapsize[0] / 2 / cursor_scale) * 2),
+                    self.w.get_screen().get_display().get_maximal_cursor_size().width
+                ])
                 print "Adjusted cursor size: " + str(cursor_scaled_snapsize)
                 self.snapsize = (cursor_scaled_snapsize, cursor_scaled_snapsize)
         except:
