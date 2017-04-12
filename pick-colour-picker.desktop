@@ -10,6 +10,7 @@ Exec=pick-colour-picker
 Terminal=false
 Actions=AboutDialog;PickFirst;
 Keywords=color;colour;picker;
+Categories=Graphics;
 
 [Desktop Action AboutDialog]
 Name=About Pick
