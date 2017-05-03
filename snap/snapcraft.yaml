@@ -1,0 +1,45 @@
+name: pick-colour-picker
+version: 'master'
+summary: A colour picker that remembers where you picked colours from
+description: |
+  Choose the colour you want and Pick remembers it, names it, and shows you a screenshot
+  so you can remember where you got it from. Zoom all the way in to pixels to pick
+  just the right one. Show your colours in your choice of format: rgba() or hex,
+  CSS or Gdk or Qt, whichever you prefer. Copy to the clipboard ready for pasting into
+  code or graphics apps.
+icon: pick-colour-picker.png
+
+grade: devel
+confinement: strict
+
+apps:
+  pick-colour-picker:
+    command: desktop-launch pick-colour-picker
+    desktop: usr/share/applications/pick-colour-picker.desktop
+    plugs:
+      - x11
+      - pick-colour-picker-dbus
+
+plugs:
+  pick-colour-picker-dbus:
+    interface: dbus
+    name: org.kryogenix.pick
+    bus: session
+
+parts:
+  pick-colour-picker:
+    source: .
+    plugin: python
+    python-version: python2
+    build-packages:
+      - libgirepository1.0-dev
+    stage-packages:
+      - python-gi
+      - python-gobject
+      - libgirepository1.0-dev
+      - python-cairo
+      - python-gi-cairo
+      - gir1.2-gtk-3.0
+    after: [desktop-gtk3]
+    prepare: |
+      sed -i 's|Icon=pick-colour-picker|Icon=${SNAP}/usr/share/pixmaps/pick-colour-picker.png|g' pick-colour-picker.desktop
