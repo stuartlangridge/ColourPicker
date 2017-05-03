@@ -4,10 +4,14 @@
   <metadata_license>CC0-1.0</metadata_license>
   <project_license>MIT</project_license>
   <name>Pick</name>
-  <summary>A Comic Archive Reader</summary>
+  <summary>A colour picker</summary>
   <description>
-    <p>A colour picker app for Ubuntu and Linux which allows picking
-     any colour on the screen and remembers the last few you picked.</p>
+    <p>Pick lets you pick colours from anywhere on your screen. Choose the
+        colour you want and Pick remembers it, names it, and shows you a 
+        screenshot so you can remember where you got it from.</p>
+    <p>Zoom all the way in to pixels to pick just the right one. Show your colours in 
+        your choice of format: rgba() or hex, CSS or Gdk or Qt or Android, whichever you 
+        prefer. Copy to the clipboard ready for pasting into code or graphics apps.</p>
   </description>
   <screenshots>
     <screenshot type="default">
