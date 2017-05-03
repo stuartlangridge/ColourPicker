@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop">
+  <id>pick-colour-picker.desktop</id>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>MIT</project_license>
+  <name>Pick</name>
+  <summary>A Comic Archive Reader</summary>
+  <description>
+    <p>A colour picker app for Ubuntu and Linux which allows picking
+     any colour on the screen and remembers the last few you picked.</p>
+  </description>
+  <screenshots>
+    <screenshot type="default">
+      <image>https://raw.githubusercontent.com/stuartlangridge/ColourPicker/app/pick-screenshot-16x9.png</image>
+    </screenshot>
+  </screenshots>
+  <url type="homepage">https://kryogenix.org/code/pick/</url>
+  <update_contact>sil at kryogenix.org</update_contact>
+</component>
