@@ -1,4 +1,4 @@
-Source: pick-colour-picker
+Source: com.github.stuartlangridge.colourpicker
 Section: misc
 Priority: extra
 Standards-Version: 3.9.3
