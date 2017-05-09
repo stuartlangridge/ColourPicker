@@ -31,15 +31,13 @@ parts:
     source: .
     plugin: python
     python-version: python2
-    build-packages:
-      - libgirepository1.0-dev
     stage-packages:
       - python-gi
       - python-gobject
-      - libgirepository1.0-dev
       - python-cairo
       - python-gi-cairo
       - gir1.2-gtk-3.0
+      - gnome-themes-standard
     after: [desktop-gtk3]
     prepare: |
       sed -i 's|Icon=pick-colour-picker|Icon=${SNAP}/usr/share/pixmaps/pick-colour-picker.png|g' pick-colour-picker.desktop
