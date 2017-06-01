@@ -18,12 +18,14 @@ apps:
     desktop: usr/share/applications/pick-colour-picker.desktop
     plugs:
       - x11
-      - pick-colour-picker-dbus
+      - home
+      - gsettings
+      - unity7
 
-plugs:
+slots:
   pick-colour-picker-dbus:
     interface: dbus
-    name: org.kryogenix.pick
+    name: org.kryogenix.pick-colour-picker
     bus: session
 
 parts:

@@ -1,3 +1,5 @@
+import gi
+gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk, Gdk, GLib, GdkPixbuf, Gio
 try:
     from gi.repository import Unity
@@ -691,7 +693,7 @@ class Main(object):
         self.window_metrics_restored = False
 
         # create application
-        self.app = Gtk.Application.new("org.kryogenix.pick", Gio.ApplicationFlags.HANDLES_COMMAND_LINE)
+        self.app = Gtk.Application.new("org.kryogenix.pick-colour-picker", Gio.ApplicationFlags.HANDLES_COMMAND_LINE)
         self.app.connect("command-line", self.handle_commandline)
 
     def pick_after_window_mapped(self, window, _):
