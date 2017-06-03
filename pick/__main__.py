@@ -864,16 +864,29 @@ class Main(object):
         self.empty = Gtk.VBox()
         icon = Gio.ThemedIcon(name="pick-colour-picker")
         theme_icon = Gtk.IconTheme.get_default().lookup_by_gicon(icon, 48, 0)
-        if theme_icon:
+        if theme_icon and False:
+            #print("Theme icon exists")
             image = Gtk.Image.new_from_gicon(icon, Gtk.IconSize.DIALOG)
             # and get a pixbuf from it to use as the default icon
             self.w.set_default_icon(theme_icon.load_icon())
         else:
+            image = None
             # not in the theme, so we're probably running locally; use the local one
-            image = Gtk.Image.new_from_file(os.path.join(os.path.split(__file__)[0], "..", 
-                "data", "icons", "48x48", "apps", "pick-colour-picker.png"))
-            # and set this as the default icon
-            self.w.set_default_icon(image.get_pixbuf())
+            licon = os.path.join(os.path.split(__file__)[0], "..", 
+                "data", "icons", "48x48", "apps", "pick-colour-picker.png")
+            if os.path.exists(licon):
+                #print("Using local icon", licon)
+                image = Gtk.Image.new_from_file(licon)
+            else:
+                # probably we're in a snap
+                sicon = os.path.join(os.path.split(__file__)[0], 
+                    "..", "..", "..", "..", "usr", "share", "icons", "hicolor",
+                    "48x48", "apps", "pick-colour-picker.png")
+                if os.path.exists(sicon):
+                    #print("Using local snap icon", sicon)
+                    image = Gtk.Image.new_from_file(sicon)
+            # and set this as the default icon if it exists
+            if image: self.w.set_default_icon(image.get_pixbuf())
         image.set_property("valign", Gtk.Align.END)
         self.empty.pack_start(image, True, True, 0)
         nocol1 = Gtk.Label("No Colours")
@@ -1268,14 +1281,20 @@ class Main(object):
 
     def finish_loading_history(self, f, res):
         try:
-            success, contents, _ = f.load_contents_finish(res)
+            try:
+                success, contents, _ = f.load_contents_finish(res)
+            except GLib.Error as e:
+                print("couldn't restore settings (error: %s), so assuming they're blank" % (e,))
+                contents = "{}" # fake contents
+
             data = json.loads(contents)
-            colours = data["colours"]
-            for item in colours:
-                self.add_history_item(
-                    item["colour"][0], item["colour"][1], item["colour"][2],
-                    base64_imgdata=item["imgdata"]
-                )
+            colours = data.get("colours")
+            if colours:
+                for item in colours:
+                    self.add_history_item(
+                        item["colour"][0], item["colour"][1], item["colour"][2],
+                        base64_imgdata=item["imgdata"]
+                    )
             f = data.get("formatter")
             if f and f in self.formatters.keys():
                 self.active_formatter = f
