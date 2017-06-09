@@ -996,7 +996,12 @@ class Main(object):
 
     def grab(self, btn):
         self.grabbed = True
-        self.w.iconify()
+
+        # Don't iconify (minimize) the window as some Window Managers
+        # (KDE and possibly Xfce) won't allow selecting a colour
+        # Instead just leave the window here but make it invisibile
+        self.w.set_opacity(0)
+
         # we grab the keyboard so that we get the Escape keypress to cancel a pick even though we're iconified
         if self.keyboard:
             self.keyboard.grab(
@@ -1006,7 +1011,8 @@ class Main(object):
                 Gdk.EventMask.KEY_PRESS_MASK,
                 None,
                 Gdk.CURRENT_TIME)
-        GLib.timeout_add(150, self.set_magnifier_cursor) # give the window time to iconify
+
+        self.set_magnifier_cursor()
 
     def set_magnifier_cursor(self):
         root = Gdk.get_default_root_window()
@@ -1133,6 +1139,11 @@ class Main(object):
         if self.keyboard: self.keyboard.ungrab(Gdk.CURRENT_TIME)
         self.grabbed = False
         # deiconify doesn't seem to work, but http://stackoverflow.com/questions/24061029/how-to-deiconify-a-window-after-the-click-of-minimize-button-in-gtk
+        # The window will be 0% opaque
+        # minimize then set back to 100, then deiconify
+        # that way the window manager will nicely restore the window
+        self.w.iconify()
+        self.w.set_opacity(100)
         self.w.deiconify()
         self.w.present()
 
