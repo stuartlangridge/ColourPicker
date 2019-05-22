@@ -9,24 +9,49 @@ description: |
   code or graphics apps.
 icon: pick-colour-picker.png
 
+base: core18
+
 grade: devel
 confinement: strict
 
 apps:
   pick-colour-picker:
-    command: desktop-launch pick-colour-picker
+    environment:
+      XDG_DATA_DIRS: $SNAP/share:$XDG_DATA_DIRS
+    command: desktop-launch $SNAP/bin/pick-colour-picker
     desktop: usr/share/applications/pick-colour-picker.desktop
     plugs:
       - x11
       - home
       - gsettings
       - unity7
+      - gnome-3-28-1804
+      - wayland
+      - desktop
 
 slots:
   pick-colour-picker-dbus:
     interface: dbus
     name: org.kryogenix.pick-colour-picker
     bus: session
+
+plugs:
+  gnome-3-28-1804:
+    interface: content
+    target: gnome-platform
+    default-provider: gnome-3-28-1804:gnome-3-28-1804
+  gtk-3-themes:
+    interface: content
+    target: $SNAP/share/themes
+    default-provider: gtk-common-themes:gtk-3-themes
+  icon-themes:
+    interface: content
+    target: $SNAP/share/icons
+    default-provider: gtk-common-themes:icon-themes
+  sound-themes:
+    interface: content
+    target: $SNAP/share/sounds
+    default-provider: gtk-common-themes:sounds-themes
 
 parts:
   pick-colour-picker:
@@ -41,5 +66,34 @@ parts:
       - gir1.2-gtk-3.0
       - gnome-themes-standard
     after: [desktop-gtk3]
-    prepare: |
+    override-pull: |
+      snapcraftctl pull
       sed -i 's|Icon=pick-colour-picker|Icon=${SNAP}/usr/share/pixmaps/pick-colour-picker.png|g' pick-colour-picker.desktop
+  desktop-gtk3:
+      build-packages:
+        - build-essential
+        - libgtk-3-dev
+      make-parameters:
+        - FLAVOR=gtk3
+      plugin: make
+      source: https://github.com/ubuntu/snapcraft-desktop-helpers.git
+      source-subdir: gtk
+      stage-packages:
+        - libxkbcommon0
+        - ttf-ubuntu-font-family
+        - dmz-cursor-theme
+        - light-themes
+        - adwaita-icon-theme
+        - gnome-themes-standard
+        - shared-mime-info
+        - libgtk-3-0
+        - libgdk-pixbuf2.0-0
+        - libglib2.0-bin
+        - libgtk-3-bin
+        - unity-gtk3-module
+        - libappindicator3-1
+        - locales-all
+        - xdg-user-dirs
+        - ibus-gtk3
+        - libibus-1.0-5
+        - fcitx-frontend-gtk3
