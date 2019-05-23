@@ -211,35 +211,22 @@ article img.aside {
     margin: 1em 0;
 }
 
-.dl a {
+.dl a.linux {
     display: inline-block;
     border-radius: 4px;
     border: 2px solid #666666;
-    padding: 1em;
     margin-bottom: 1em;
     background: #eeeeee;
     text-decoration: none;
     white-space: nowrap;
+    box-sizing: border-box;
+    height: 56px;
+    margin: 0;
+    line-height: 56px;
+    padding: 0 1em;
 }
-.dl a.ubuntu {
-    background: url(../img/logo-ubuntu_su-orange-hex.png) center center no-repeat;
-    border-color: #e77f5a;
-    background-size: contain;
-    text-indent: -1000em;
-    min-width: 8em;
-}
-.dl a.elementary {
-    background: url(../img/elementary-e.svg) center center no-repeat;
-    border-color: #333;
-    background-size: contain;
-    text-indent: -1000em;
-    min-width: 8em;
-}
-.dl a.ubuntu:hover {
-    background-color: #f8ddd3;
-}
-.dl a.elementary:hover {
-    background-color: #d3ddf8;
+.dl a.ubuntu img {
+    vertical-align: top;
 }
 
 
