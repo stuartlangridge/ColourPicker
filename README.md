@@ -5,3 +5,4 @@ See https://kryogenix.org/code/pick. Install with `snap install pick-colour-pick
 
 [![Pick](https://snapcraft.io/pick-colour-picker/badge.svg)](https://snapcraft.io/pick-colour-picker)
 
+[![Snap Status](https://build.snapcraft.io/badge/stuartlangridge/ColourPicker.svg)](https://build.snapcraft.io/user/stuartlangridge/ColourPicker)
