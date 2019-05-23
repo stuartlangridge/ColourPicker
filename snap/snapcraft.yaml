@@ -11,7 +11,7 @@ icon: pick-colour-picker.png
 
 base: core18
 
-grade: devel
+grade: stable
 confinement: strict
 
 apps:
