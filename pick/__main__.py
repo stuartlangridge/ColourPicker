@@ -902,7 +902,7 @@ class Main(object):
         GLib.idle_add(self.load_history)
 
     def window_configure(self, window, ev):
-        if not self.window_metrics_restored: return
+        if not self.window_metrics_restored: return False
         if self.resize_timeout:
             GLib.source_remove(self.resize_timeout)
         self.resize_timeout = GLib.timeout_add_seconds(1, self.save_window_metrics,
@@ -996,8 +996,7 @@ class Main(object):
 
     def grab(self, btn):
         self.grabbed = True
-        self.w.iconify()
-        # we grab the keyboard so that we get the Escape keypress to cancel a pick even though we're iconified
+        # we grab the keyboard so that we get the Escape keypress to cancel a pick even though we're transparent
         if self.keyboard:
             self.keyboard.grab(
                 self.w.get_window(),
@@ -1006,7 +1005,9 @@ class Main(object):
                 Gdk.EventMask.KEY_PRESS_MASK,
                 None,
                 Gdk.CURRENT_TIME)
-        GLib.timeout_add(150, self.set_magnifier_cursor) # give the window time to iconify
+        self.w.set_opacity(0.0)
+        self.set_magnifier_cursor()
+        GLib.timeout_add(250, self.set_magnifier_cursor) # grab cursor img again after win is transparent even if mouse doesn't move
 
     def set_magnifier_cursor(self):
         root = Gdk.get_default_root_window()
@@ -1120,7 +1121,7 @@ class Main(object):
             zoom_pb.get_width()/2, zoom_pb.get_height()/2)
 
         # Set the cursor
-        self.pointer.grab(
+        res = self.pointer.grab(
             self.w.get_window(),
             Gdk.GrabOwnership.APPLICATION,
             True,
@@ -1132,8 +1133,7 @@ class Main(object):
         self.pointer.ungrab(Gdk.CURRENT_TIME)
         if self.keyboard: self.keyboard.ungrab(Gdk.CURRENT_TIME)
         self.grabbed = False
-        # deiconify doesn't seem to work, but http://stackoverflow.com/questions/24061029/how-to-deiconify-a-window-after-the-click-of-minimize-button-in-gtk
-        self.w.deiconify()
+        self.w.set_opacity(1.0)
         self.w.present()
 
     def get_cache_file(self):
