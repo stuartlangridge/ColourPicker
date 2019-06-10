@@ -1,5 +1,5 @@
 name: pick-colour-picker
-version: 'master'
+version: git
 summary: A colour picker that remembers where you picked colours from
 description: |
   Choose the colour you want and Pick remembers it, names it, and shows you a screenshot
