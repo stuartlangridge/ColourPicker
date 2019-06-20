@@ -4,9 +4,9 @@ Priority: optional
 Maintainer: Stuart Langridge <sil@kryogenix.org>
 Build-Depends: debhelper (>= 10),
                dh-python,
-               python-all,
-               python-pkg-resources,
-               python-setuptools,
+               python3,
+               python3-pkg-resources,
+               python3-setuptools,
 Standards-Version: 3.9.3
 
 Package: pick-colour-picker
@@ -16,12 +16,12 @@ Depends: gir1.2-dee-1.0,
          gir1.2-glib-2.0,
          gir1.2-gtk-3.0,
          gir1.2-unity-5.0,
-         python-cairo,
-         python-gi,
-         python-gi-cairo,
-         python-gobject,
+         python3 (>= 3.3),
+         python3-cairo,
+         python3-gi,
+         python3-gi-cairo,
          ${misc:Depends},
-         ${python:Depends},
+         ${python3:Depends},
 Description: A colour picker that remembers where you picked colours from
  Pick lets you pick colours from anywhere on your screen. Choose the
  colour you want and Pick remembers it, names it, and shows you a

@@ -1,25 +1,19 @@
 Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
-Upstream-Name: Magnus
+Upstream-Name: Pick
 Upstream-Contact: Stuart Langridge <sil@kryogenix.org>
-Source: https://github.com/stuartlangridge/magnus
-Files-Excluded: data/logo.png
-                data/screenshot.png
+Source: https://github.com/stuartlangridge/ColourPicker
+Files-Excluded: .github/*
+                .gitignore
+                snap/snapcraft.yaml
+                pick-screenshot-16x9.png
 
-Files: .gitignore
-       .travis.yml
-       magnus
+
+Files: setup.py
+       data/*
+       debian/*
+       pick/*
        README.md
-Copyright: 2019, Stuart Langridge <sil@kryogenix.org>
-License: Expat
-
-Files: data/*.1
-       data/*.desktop
-       setup.py
-Copyright: 2019, Martin Wimpress <martin.wimpress@ubuntu.com>
-License: Expat
-
-Files: debian/*
-Copyright: 2019, Martin Wimpress <martin.wimpress@ubuntu.com>
+Copyright: 2016 - 2019, Stuart Langridge <sil@kryogenix.org>
 License: Expat
 
 License: Expat

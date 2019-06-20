@@ -4,7 +4,7 @@ DHFLAGS=
 export PYBUILD_SYSTEM=distutils
 
 %:
-	dh $@ $(DHFLAGS) --with python2 --buildsystem=pybuild
+	dh $@ $(DHFLAGS) --with python3 --buildsystem=pybuild
 
 override_dh_auto_clean:
 	rm -Rf pick_colour_picker.egg-info/
