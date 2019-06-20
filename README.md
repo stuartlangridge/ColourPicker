@@ -16,6 +16,8 @@
 
 ### Linux
 
+[![Get it from the Snap Store](https://snapcraft.io/static/images/badges/en/snap-store-black.svg)](https://snapcraft.io/pick-colour-picker)
+
 ```bash
 snap install pick-colour-picker
 ```
@@ -33,8 +35,8 @@ You'll need the following dependencies:
   * `python3-gi`
   * `python3-gi-cairo`
 
-Run `setup.py` to build and install Magnus:
+Run `setup.py` to build and install Pick:
 
 ```bash
-sudo python setup.py install
+sudo python3 setup.py install
 ```
