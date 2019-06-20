@@ -288,7 +288,7 @@ class Main(object):
             else:
                 # probably we're in a snap
                 sicon = os.path.join(os.path.split(__file__)[0], 
-                    "..", "..", "..", "..", "usr", "share", "icons", "hicolor",
+                    os.environ.get('SNAP'), "usr", "share", "icons", "hicolor",
                     "48x48", "apps", "pick-colour-picker.png")
                 if os.path.exists(sicon):
                     #print("Using local snap icon", sicon)

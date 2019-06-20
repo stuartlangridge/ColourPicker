@@ -1,5 +1,9 @@
 name: pick-colour-picker
 version: git
+version-script: |
+  VER=$(grep __VERSION__ pick/__main__.py | head -n 1 | cut -d'=' -f2 | sed 's/ //g' | sed "s/\"//g")
+  REV=$(git rev-parse --short HEAD)
+  echo $VER-$REV
 summary: A colour picker that remembers where you picked colours from
 description: |
   Choose the colour you want and Pick remembers it, names it, and shows you a screenshot
@@ -10,30 +14,8 @@ description: |
 icon: pick-colour-picker.png
 
 base: core18
-
 grade: stable
 confinement: strict
-
-apps:
-  pick-colour-picker:
-    environment:
-      XDG_DATA_DIRS: $SNAP/share:$XDG_DATA_DIRS
-    command: desktop-launch $SNAP/bin/pick-colour-picker
-    desktop: usr/share/applications/pick-colour-picker.desktop
-    plugs:
-      - x11
-      - home
-      - gsettings
-      - unity7
-      - gnome-3-28-1804
-      - wayland
-      - desktop
-
-slots:
-  pick-colour-picker-dbus:
-    interface: dbus
-    name: org.kryogenix.pick-colour-picker
-    bus: session
 
 plugs:
   gnome-3-28-1804:
@@ -53,22 +35,28 @@ plugs:
     target: $SNAP/share/sounds
     default-provider: gtk-common-themes:sounds-themes
 
-parts:
+slots:
+  pick-colour-picker-dbus:
+    interface: dbus
+    name: org.kryogenix.pick-colour-picker
+    bus: session
+
+apps:
   pick-colour-picker:
-    source: .
-    plugin: python
-    python-version: python2
-    stage-packages:
-      - python-gi
-      - python-gobject
-      - python-cairo
-      - python-gi-cairo
-      - gir1.2-gtk-3.0
-      - gnome-themes-standard
-    after: [desktop-gtk3]
-    override-pull: |
-      snapcraftctl pull
-      sed -i 's|Icon=pick-colour-picker|Icon=${SNAP}/usr/share/pixmaps/pick-colour-picker.png|g' pick-colour-picker.desktop
+    environment:
+      XDG_DATA_DIRS: $SNAP/share:$XDG_DATA_DIRS
+      LD_LIBRARY_PATH: $LD_LIBRARY_PATH:$SNAP/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/libunity
+    command: desktop-launch $SNAP/bin/pick-colour-picker
+    desktop: usr/share/applications/pick-colour-picker.desktop
+    plugs:
+      - desktop
+      - gsettings
+      - home
+      - unity7
+      - wayland
+      - x11
+
+parts:
   desktop-gtk3:
     build-packages:
       - libgtk-3-dev
@@ -77,3 +65,40 @@ parts:
     plugin: make
     source: https://github.com/ubuntu/snapcraft-desktop-helpers.git
     source-subdir: gtk
+
+  pick-colour-picker:
+    after:
+      - desktop-gtk3
+    source: .
+    plugin: python
+    python-version: python3
+    stage-packages:
+      - gir1.2-dee-1.0
+      - gir1.2-gdkpixbuf-2.0
+      - gir1.2-glib-2.0
+      - gir1.2-gtk-3.0
+      - gir1.2-unity-5.0
+      - python3-cairo
+      - python3-gi
+      - python3-gi-cairo
+    override-pull: |
+      snapcraftctl pull
+      sed -i 's|Icon=pick-colour-picker|Icon=${SNAP}/usr/share/pixmaps/pick-colour-picker.png|g' pick-colour-picker.desktop
+    # Most of what Pick requires is provided by the GNOME platform snap; so just prime what we need.
+    prime:
+      - bin
+      - command-*.wrapper
+      - flavor-select
+      - lib
+      - usr/bin/python*
+      - usr/lib/girepository-1.0
+      - usr/lib/python3*
+      - usr/lib/*/gio
+      - usr/lib/*/girepository-1.0
+      - usr/lib/*/libdbusmenu*
+      - usr/lib/*/libdee*
+      - usr/lib/*/libunity*
+      - usr/share/applications/pick-colour-picker.desktop
+      - usr/share/icons/hicolor/*/apps/pick-colour-picker.png
+      - usr/share/icons/hicolor/*/apps/pick-colour-picker-symbolic.svg
+      - usr/share/pixmaps/pick-colour-picker.png

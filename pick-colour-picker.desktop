@@ -1,6 +1,6 @@
 [Desktop Entry]
 Type=Application
-Name=pick
+Name=Pick
 Comment=Pick is a colour picker
 Comment[en_US]=Pick is a color picker
 GenericName=Colour Picker
@@ -9,8 +9,8 @@ Icon=pick-colour-picker
 Exec=pick-colour-picker
 Terminal=false
 Actions=AboutDialog;PickFirst;
-Keywords=color;colour;picker;
-Categories=Graphics;
+Keywords=color;colour;picker;pick;chooser;palette;screen;selection;
+Categories=GTK;Graphics;
 
 [Desktop Action AboutDialog]
 Name=About Pick
