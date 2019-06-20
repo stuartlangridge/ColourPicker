@@ -760,7 +760,14 @@ class Main(object):
         pixel_data = pb.get_pixels()
         offset = (pb.get_rowstride() * (self.snapsize[1] / 2)) + ((self.latest_pb.get_rowstride() / self.snapsize[0]) * (self.snapsize[0] / 2))
         offset = int(offset)
-        rgb_vals = tuple(pixel_data[offset:offset+3])
+        rgb_vals = []
+        # pixel data gets returned as bytes or int depending on which Python version we're in
+        for x in pixel_data[offset:offset+3]:
+            if type(x) == int:
+                rgb_vals.append(x)
+            else:
+                rgb_vals.append(ord(x))
+        rgb_vals = tuple(rgb_vals)
         return rgb_vals
 
     def magnifier_move(self, *args, **kwargs):
