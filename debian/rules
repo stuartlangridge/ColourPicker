@@ -1,4 +1,19 @@
 #!/usr/bin/make -f
 
+DHFLAGS=
+export PYBUILD_SYSTEM=distutils
+
 %:
-	dh $@ --buildsystem=python_distutils --with=python2 
+	dh $@ $(DHFLAGS) --with python2 --buildsystem=pybuild
+
+override_dh_auto_clean:
+	rm -Rf pick_colour_picker.egg-info/
+
+	# dh_auto_clean with pybuild/distutils only works if setup.py is
+	# present
+	if [ -f setup.py ]; then \
+		dh_auto_clean; \
+	fi
+
+get-orig-source:
+	uscan --noconf --force-download --rename --download-current-version --repack --destdir=..
