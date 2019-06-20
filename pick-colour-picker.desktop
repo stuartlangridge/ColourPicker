@@ -9,7 +9,7 @@ Icon=pick-colour-picker
 Exec=pick-colour-picker
 Terminal=false
 Actions=AboutDialog;PickFirst;
-Keywords=color;colour;picker;
+Keywords=color;colour;picker;pick;chooser;palette;screen;selection;
 Categories=GTK;Graphics;
 
 [Desktop Action AboutDialog]
