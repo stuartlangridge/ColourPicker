@@ -609,12 +609,12 @@ class Main(object):
 
         if base64_imgdata:
             loader = GdkPixbuf.PixbufLoader.new_with_type("png")
-            loader.write(base64.b64decode(base64_imgdata))
+            loader.write(base64.b64decode(base64_imgdata.encode("utf-8")))
             pixbuf = loader.get_pixbuf()
             loader.close()
         elif pixbuf:
             success, data = pixbuf.save_to_bufferv("png", [], [])
-            base64_imgdata = base64.b64encode(data)
+            base64_imgdata = base64.b64encode(data).decode("utf-8")
         else:
             raise Exception("A history item must have either imgdata or a pixbuf")
 
@@ -695,7 +695,11 @@ class Main(object):
                 print("couldn't restore settings (error: %s), so assuming they're blank" % (e,))
                 contents = "{}" # fake contents
 
-            data = json.loads(contents)
+            try:
+                data = json.loads(contents)
+            except:
+                print("Failed to restore data")
+                data = {}
             colours = data.get("colours")
             if colours:
                 for item in colours:
@@ -755,7 +759,8 @@ class Main(object):
     def get_colour_from_pb(self, pb):
         pixel_data = pb.get_pixels()
         offset = (pb.get_rowstride() * (self.snapsize[1] / 2)) + ((self.latest_pb.get_rowstride() / self.snapsize[0]) * (self.snapsize[0] / 2))
-        rgb_vals = tuple([ord(x) for x in pixel_data[offset:offset+3]])
+        offset = int(offset)
+        rgb_vals = tuple(pixel_data[offset:offset+3])
         return rgb_vals
 
     def magnifier_move(self, *args, **kwargs):
