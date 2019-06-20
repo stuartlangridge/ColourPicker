@@ -2,6 +2,7 @@ import gi
 gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk, Gdk, GLib, GdkPixbuf, Gio
 try:
+    gi.require_version('Unity', '7.0')
     from gi.repository import Unity
 except:
     Unity = False
