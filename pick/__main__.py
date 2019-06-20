@@ -6,14 +6,14 @@ try:
     from gi.repository import Unity
 except:
     Unity = False
-import cairo, math, json, os, codecs, time, subprocess, sys
+import cairo, math, json, os, codecs, time, subprocess, sys, base64
 
 __VERSION__ = "1.5"
 
 if "--snark" in sys.argv:
-    from snark import COLOUR_NAMES
+    from .snark import COLOUR_NAMES
 else:
-    from colours import COLOUR_NAMES
+    from .colours import COLOUR_NAMES
 
 def rgb_to_lab(r, g, b):
     """Convert RGB colours to LAB colours
@@ -185,7 +185,7 @@ class Main(object):
                 border-width: 0;
                 padding: 6px 0;
             }
-        """.replace("ROWBGCOL", ROWBGCOL)
+        """.replace("ROWBGCOL", ROWBGCOL).encode("utf-8")
         style_provider.load_from_data(css)
         Gtk.StyleContext.add_provider_for_screen(
             Gdk.Screen.get_default(), 
@@ -223,10 +223,10 @@ class Main(object):
         # the status bar and its formats list
         hb = Gtk.HBox()
         self.formatters = {
-            "CSS hex": lambda r, g, b: "#%02x%02x%02x" % (r, g, b),
-            "CSS uppercase hex": lambda r, g, b: ("#%02x%02x%02x" % (r, g, b)).upper(),
-            "CSS rgb": lambda r, g, b: "rgb(%s, %s, %s)" % (r, g, b),
-            "CSS rgba": lambda r, g, b: "rgba(%s, %s, %s, 1)" % (r, g, b),
+            "CSS hex": lambda r, g, b: "#%02x%02x%02x" % (int(r), int(g), int(b)),
+            "CSS uppercase hex": lambda r, g, b: ("#%02x%02x%02x" % (int(r), int(g), int(b))).upper(),
+            "CSS rgb": lambda r, g, b: "rgb(%s, %s, %s)" % (int(r), int(g), int(b)),
+            "CSS rgba": lambda r, g, b: "rgba(%s, %s, %s, 1)" % (int(r), int(g), int(b)),
             "GDK.RGBA": lambda r, g, b: "Gdk.RGBA(%.3f, %.3f, %.3f, 1.0)" % (r/255.0, g/255.0, b/255.0),
             "QML Qt.rgba": lambda r, g, b: "Qt.rgba(%.3f, %.3f, %.3f, 1.0)" % (r/255.0, g/255.0, b/255.0),
             "Android resource": lambda r, g, b: "<color name=\"%s\">#%02x%02x%02x</color>" % (self.closest_name(r, g, b).lower(), r, g, b)
@@ -244,7 +244,7 @@ class Main(object):
         vcell.set_property('xalign', 1.0)
         vcell.set_property("foreground_rgba", self.lowlight_rgba)
         self.active_formatter = "CSS rgb"
-        self.fcom.set_active(self.formatters.keys().index(self.active_formatter))
+        self.fcom.set_active(list(self.formatters.keys()).index(self.active_formatter))
         self.fcom.connect("changed", self.change_format)
         hb.pack_start(Gtk.Label("Format:"), False, False, 12)
         hb.pack_start(self.fcom, False, False, 12)
@@ -609,12 +609,12 @@ class Main(object):
 
         if base64_imgdata:
             loader = GdkPixbuf.PixbufLoader.new_with_type("png")
-            loader.write(base64_imgdata.decode("base64"))
+            loader.write(base64.b64decode(base64_imgdata))
             pixbuf = loader.get_pixbuf()
             loader.close()
         elif pixbuf:
             success, data = pixbuf.save_to_bufferv("png", [], [])
-            base64_imgdata = data.encode("base64")
+            base64_imgdata = base64.b64encode(data)
         else:
             raise Exception("A history item must have either imgdata or a pixbuf")
 
@@ -706,7 +706,7 @@ class Main(object):
             f = data.get("formatter")
             if f and f in self.formatters.keys():
                 self.active_formatter = f
-                self.fcom.set_active(self.formatters.keys().index(f))
+                self.fcom.set_active(list(self.formatters.keys()).index(f))
             metrics = data.get("metrics")
             if metrics:
                 self.restore_window_metrics(metrics)
