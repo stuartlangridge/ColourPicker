@@ -29,10 +29,9 @@ You'll need the following dependencies:
   * `gir1.2-glib-2.0`
   * `gir1.2-gtk-3.0`
   * `gir1.2-unity-5.0`
-  * `python-cairo`
-  * `python-gi`
-  * `python-gi-cairo`
-  * `python-gobject`
+  * `python3-cairo`
+  * `python3-gi`
+  * `python3-gi-cairo`
 
 Run `setup.py` to build and install Magnus:
 
