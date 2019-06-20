@@ -71,17 +71,16 @@ parts:
       - desktop-gtk3
     source: .
     plugin: python
-    python-version: python2
+    python-version: python3
     stage-packages:
       - gir1.2-dee-1.0
       - gir1.2-gdkpixbuf-2.0
       - gir1.2-glib-2.0
       - gir1.2-gtk-3.0
       - gir1.2-unity-5.0
-      - python-cairo
-      - python-gi
-      - python-gi-cairo
-      - python-gobject
+      - python3-cairo
+      - python3-gi
+      - python3-gi-cairo
     override-pull: |
       snapcraftctl pull
       sed -i 's|Icon=pick-colour-picker|Icon=${SNAP}/usr/share/pixmaps/pick-colour-picker.png|g' pick-colour-picker.desktop
@@ -93,7 +92,7 @@ parts:
       - lib
       - usr/bin/python*
       - usr/lib/girepository-1.0
-      - usr/lib/python2*
+      - usr/lib/python3*
       - usr/lib/*/gio
       - usr/lib/*/girepository-1.0
       - usr/lib/*/libdbusmenu*
