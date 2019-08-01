@@ -137,7 +137,7 @@ class Main(object):
         self.w.connect("scroll-event", self.magnifier_scrollwheel)
         self.w.connect("key-press-event", self.magnifier_keypress)
         self.w.connect("configure-event", self.window_configure)
-        self.w.connect("destroy", Gtk.main_quit)
+        self.w.connect("destroy", lambda a: self.app.quit())
         if on_window_map: self.w.connect("map-event", on_window_map)
 
         devman = self.w.get_screen().get_display().get_device_manager()
@@ -313,8 +313,13 @@ class Main(object):
         if not self.window_metrics_restored: return False
         if self.resize_timeout:
             GLib.source_remove(self.resize_timeout)
-        self.resize_timeout = GLib.timeout_add_seconds(1, self.save_window_metrics,
+        self.resize_timeout = GLib.timeout_add_seconds(1, self.save_window_metrics_after_timeout,
             {"x":ev.x, "y":ev.y, "w":ev.width, "h":ev.height})
+
+    def save_window_metrics_after_timeout(self, props):
+        GLib.source_remove(self.resize_timeout)
+        self.resize_timeout = None
+        self.save_window_metrics(props)
 
     def save_window_metrics(self, props):
         scr = self.w.get_screen()
@@ -346,7 +351,7 @@ class Main(object):
         action_new.connect("activate", self.grab)
         action_group.add_action_with_accel(action_new, None)
         action_filequit = Gtk.Action("FileQuit", None, None, Gtk.STOCK_QUIT)
-        action_filequit.connect("activate", Gtk.main_quit)
+        action_filequit.connect("activate", lambda a: self.app.quit())
         action_group.add_action(action_filequit)
         action_group.add_actions([
             ("HelpMenu", None, "Help"),
