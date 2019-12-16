@@ -7,7 +7,7 @@ icons = []
 for dirpath, dirnames, filenames in os.walk("data/icons/"):
     relpath = dirpath[len("data/icons/"):]
     if relpath and filenames:
-        icons.append((sys.prefix+"/share/icons/hicolor/"+relpath, [os.path.join(dirpath, x) for x in filenames]))
+        icons.append(("share/icons/hicolor/"+relpath, [os.path.join(dirpath, x) for x in filenames]))
 
 
 setup(
@@ -23,8 +23,8 @@ setup(
     package_dir={'pick': 'pick'},
 
     data_files=[
-        (sys.prefix+'/share/applications',['pick-colour-picker.desktop']),
-        (sys.prefix+'/share/pixmaps', ['pick-colour-picker.png'])
+        ('share/applications',['pick-colour-picker.desktop']),
+        ('share/pixmaps', ['pick-colour-picker.png'])
     ] + icons,
 
     zip_safe=True,
