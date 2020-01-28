@@ -35,8 +35,6 @@ You'll need the following dependencies:
   * `python3-gi`
   * `python3-gi-cairo`
 
-Run `setup.py` to build and install Pick:
+Pick can be run from the checkout with `python3 -m pick`. 
 
-```bash
-sudo python3 setup.py install
-```
+A `setup.py` is present, so `python3 setup.py install` is possible, but beware that [uninstalling setup.py-installed apps is not as easy as it should be](https://github.com/stuartlangridge/ColourPicker/issues/62) and prepare accordingly if you plan to use this install method.
