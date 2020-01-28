@@ -372,13 +372,20 @@ class Main(object):
         }
         self.serialise()
 
+    def moveit(self, x, y):
+        self.w.move(x, y)
+
+    def sizeit(self, w, h):
+        self.w.resize(w, h)
+
     def restore_window_metrics(self, metrics):
         scr = self.w.get_screen()
         sw = float(scr.get_width())
         sh = float(scr.get_height())
-        self.w.set_size_request(int(sw * metrics["ww"]),
-                                int(sh * metrics["wh"]))
-        self.w.move(int(sw * metrics["wx"]), int(sh * metrics["wy"]))
+        GLib.timeout_add(50, self.moveit,
+                         int(sw * metrics["wx"]), int(sh * metrics["wy"]))
+        GLib.timeout_add(55, self.sizeit,
+                         int(sw * metrics["ww"]), int(sh * metrics["wh"]))
 
     def add_desktop_menu(self):
         action_group = Gtk.ActionGroup("menu_actions")
