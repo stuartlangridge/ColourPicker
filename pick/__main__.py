@@ -727,10 +727,15 @@ class Main(object):
         eb.connect("focus-in-event", show_copy, copy)
         eb.connect("focus-out-event", hide_copy, copy)
 
-        self.container_vb.pack_start(eb, False, False, 0)
-        self.container_vb.reorder_child(eb, 0)
+        revealer = Gtk.Revealer()
+        revealer.set_transition_type(Gtk.RevealerTransitionType.SLIDE_DOWN)
+        revealer.add(eb)
+
+        self.container_vb.pack_start(revealer, False, False, 0)
+        self.container_vb.reorder_child(revealer, 0)
         self.vb.show_all()
         eb.show_all()
+        revealer.set_reveal_child(True)
 
         self.history.append({
             "imgdata": base64_imgdata,
