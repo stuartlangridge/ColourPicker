@@ -6,7 +6,7 @@ try:
     from gi.repository import Unity
 except:
     Unity = False
-import cairo, math, json, os, codecs, time, subprocess, sys, base64
+import cairo, math, json, os, codecs, time, subprocess, sys, base64, colorsys
 
 __VERSION__ = "1.51"
 
@@ -253,6 +253,16 @@ class Main(object):
                 int(r), int(g), int(b)),
             "CSS rgba": lambda r, g, b: "rgba(%s, %s, %s, 1)" % (
                 int(r), int(g), int(b)),
+            "CSS rgb (new-style)": lambda r, g, b: "rgb(%s  %s  %s)" % (
+                int(r), int(g), int(b)),
+            "CSS rgba (new-style)": lambda r, g, b: "rgb(%s  %s  %s / 100%%)" % (
+                int(r), int(g), int(b)),
+            "CSS lab": lambda r, g, b: "lab({:.0f}%  {:.0f}  {:.0f} / 100%)".format(*rgb_to_lab(
+                int(r), int(g), int(b))),
+            "CSS hsl": lambda r, g, b: "hsl({:.0f}deg  {:.0f}%  {:.0f}%)".format(
+                colorsys.rgb_to_hls(r/255.0, g/255.0, b/255.0)[0] * 360,
+                colorsys.rgb_to_hls(r/255.0, g/255.0, b/255.0)[2] * 100,
+                colorsys.rgb_to_hls(r/255.0, g/255.0, b/255.0)[1] * 100),
             "GDK.RGBA": lambda r, g, b: "Gdk.RGBA(%.3f, %.3f, %.3f, 1.0)" % (
                 r/255.0, g/255.0, b/255.0),
             "QML Qt.rgba": lambda r, g, b: "Qt.rgba(%.3f, %.3f, %.3f, 1.0)" % (
