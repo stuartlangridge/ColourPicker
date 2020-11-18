@@ -163,11 +163,11 @@ class Main(object):
                     int(math.ceil(self.snapsize[0] / 2 / cursor_scale) * 2),
                     self.w.get_screen().get_display().get_maximal_cursor_size().width
                 ])
-                print "Adjusted cursor size: " + str(cursor_scaled_snapsize)
+                print("Adjusted cursor size: " + str(cursor_scaled_snapsize))
                 self.snapsize = (cursor_scaled_snapsize, cursor_scaled_snapsize)
         except:
             # No gnome/dconf?!
-            print "Couldn't determine correct cursor size. If you experience any flickering, try launching with CURSOR_SCALE=2"
+            print("Couldn't determine correct cursor size. If you experience any flickering, try launching with CURSOR_SCALE=2")
 
         devman = self.w.get_screen().get_display().get_device_manager()
         self.pointer = devman.get_client_pointer()
