@@ -45,7 +45,7 @@ apps:
   pick-colour-picker:
     environment:
       XDG_DATA_DIRS: $SNAP/share:$XDG_DATA_DIRS
-      LD_LIBRARY_PATH: $LD_LIBRARY_PATH:$SNAP/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/libunity
+      LD_LIBRARY_PATH: $SNAP/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/libunity
     command: desktop-launch $SNAP/bin/pick-colour-picker
     desktop: usr/share/applications/pick-colour-picker.desktop
     plugs:
