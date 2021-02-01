@@ -287,7 +287,7 @@ class Main(object):
         self.fcom.set_active(list(self.formatters.keys()).index(
             self.active_formatter))
         self.fcom.connect("changed", self.change_format)
-        hb.pack_start(Gtk.Label("Format:"), False, False, 12)
+        hb.pack_start(Gtk.Label(label="Format:"), False, False, 12)
         hb.pack_start(self.fcom, False, False, 12)
         self.vb.pack_start(hb, False, False, 12)
 
@@ -301,7 +301,7 @@ class Main(object):
         self.container_vb.get_style_context().add_class("container_vb")
 
         # The clear history button
-        self.btnclear = Gtk.Button("Clear history")
+        self.btnclear = Gtk.Button(label="Clear history")
         self.btnclear.set_sensitive(False)
         self.btnclear.connect("clicked", self.clear_history)
         hb2 = Gtk.HBox()
@@ -342,10 +342,10 @@ class Main(object):
                 self.w.set_default_icon(image.get_pixbuf())
         image.set_property("valign", Gtk.Align.END)
         self.empty.pack_start(image, True, True, 0)
-        nocol1 = Gtk.Label("No Colours")
+        nocol1 = Gtk.Label(label="No Colours")
         nocol1.set_name("empty-heading")
         self.empty.pack_start(nocol1, False, False, 12)
-        nocol2 = Gtk.Label("You haven't picked any colours.")
+        nocol2 = Gtk.Label(label="You haven't picked any colours.")
         nocol2.set_property("valign", Gtk.Align.START)
         self.empty.pack_start(nocol2, True, True, 0)
         self.w.add(self.empty)
