@@ -226,11 +226,17 @@ class Main(object):
             image = Gtk.Image.new_from_gicon(icon, Gtk.IconSize.BUTTON)
         else:
             # not in the theme, so we're probably running locally;
-            # use the local one
-            image = Gtk.Image.new_from_file(os.path.join(
+            # try to use the local one
+            licon = os.path.join(
                 os.path.split(__file__)[0], "..",
-                "data", "icons", "scalable", "apps",
-                "pick-colour-picker-symbolic.svg"))
+                "data", "icons", "scalable", "apps", "pick-colour-picker-symbolic.svg")
+            if os.path.exists(licon):
+                image = Gtk.Image.new_from_file(licon)
+            else:
+                # last resort - assume the application data has been installed to User Programs
+                image = Gtk.Image.new_from_file(os.path.join(
+                    sys.prefix, "share", "icons", "hicolor",
+                    "scalable", "apps", "pick-colour-picker-symbolic.svg"))
         btngrab.add(image)
         head.pack_start(btngrab)
         btngrab.connect("clicked", self.grab)
