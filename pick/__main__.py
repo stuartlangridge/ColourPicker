@@ -226,11 +226,17 @@ class Main(object):
             image = Gtk.Image.new_from_gicon(icon, Gtk.IconSize.BUTTON)
         else:
             # not in the theme, so we're probably running locally;
-            # use the local one
-            image = Gtk.Image.new_from_file(os.path.join(
+            # try to use the local one
+            licon = os.path.join(
                 os.path.split(__file__)[0], "..",
-                "data", "icons", "scalable", "apps",
-                "pick-colour-picker-symbolic.svg"))
+                "data", "icons", "scalable", "apps", "pick-colour-picker-symbolic.svg")
+            if os.path.exists(licon):
+                image = Gtk.Image.new_from_file(licon)
+            else:
+                # last resort - assume the application data has been installed to User Programs
+                image = Gtk.Image.new_from_file(os.path.join(
+                    sys.prefix, "share", "icons", "hicolor",
+                    "scalable", "apps", "pick-colour-picker-symbolic.svg"))
         btngrab.add(image)
         head.pack_start(btngrab)
         btngrab.connect("clicked", self.grab)
@@ -328,8 +334,8 @@ class Main(object):
             if os.path.exists(licon):
                 # print("Using local icon", licon)
                 image = Gtk.Image.new_from_file(licon)
-            else:
-                # probably we're in a snap
+            elif os.environ.get('SNAP'):
+                # we're in a snap
                 sicon = os.path.join(
                     os.path.split(__file__)[0],
                     os.environ.get('SNAP'), "usr", "share", "icons", "hicolor",
@@ -337,6 +343,14 @@ class Main(object):
                 if os.path.exists(sicon):
                     # print("Using local snap icon", sicon)
                     image = Gtk.Image.new_from_file(sicon)
+            if not image:
+                # last resort - assume the application data has been installed to User Programs
+                uicon = os.path.join(
+                    sys.prefix, "share", "icons", "hicolor",
+                    "48x48", "apps", "pick-colour-picker.png")
+                if os.path.exists(uicon):
+                    # print("Using User Programs shared icon", uicon)
+                    image = Gtk.Image.new_from_file(uicon)
             # and set this as the default icon if it exists
             if image:
                 self.w.set_default_icon(image.get_pixbuf())
