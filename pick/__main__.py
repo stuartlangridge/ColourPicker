@@ -328,8 +328,8 @@ class Main(object):
             if os.path.exists(licon):
                 # print("Using local icon", licon)
                 image = Gtk.Image.new_from_file(licon)
-            else:
-                # probably we're in a snap
+            elif os.environ.get('SNAP'):
+                # we're in a snap
                 sicon = os.path.join(
                     os.path.split(__file__)[0],
                     os.environ.get('SNAP'), "usr", "share", "icons", "hicolor",
@@ -337,6 +337,14 @@ class Main(object):
                 if os.path.exists(sicon):
                     # print("Using local snap icon", sicon)
                     image = Gtk.Image.new_from_file(sicon)
+            if not image:
+                # last resort - assume the application data has been installed to User Programs
+                uicon = os.path.join(
+                    sys.prefix, "share", "icons", "hicolor",
+                    "48x48", "apps", "pick-colour-picker.png")
+                if os.path.exists(uicon):
+                    # print("Using User Programs shared icon", uicon)
+                    image = Gtk.Image.new_from_file(uicon)
             # and set this as the default icon if it exists
             if image:
                 self.w.set_default_icon(image.get_pixbuf())
