@@ -227,10 +227,17 @@ class Main(object):
         else:
             # not in the theme, so we're probably running locally;
             # use the local one
-            image = Gtk.Image.new_from_file(os.path.join(
-                os.path.split(__file__)[0], "..",
+            snap_icon = os.path.join(os.path.split(__file__)[0], "..",
                 "data", "icons", "scalable", "apps",
-                "pick-colour-picker-symbolic.svg"))
+                "pick-colour-picker-symbolic.svg")
+            flatpak_icon = ("/app/share/icons/hicolor/scalable/apps/"
+                "org.kryogenix.Pick.svg")
+            if os.path.isfile(snap_icon):
+                image = Gtk.Image.new_from_file(snap_icon)
+            elif os.path.isfile(flatpak_icon):
+                image = Gtk.Image.new_from_file(flatpak_icon)
+            else:
+                print("Warning: couldn't find the symbolic icon")
         btngrab.add(image)
         head.pack_start(btngrab)
         btngrab.connect("clicked", self.grab)
@@ -328,7 +335,7 @@ class Main(object):
             if os.path.exists(licon):
                 # print("Using local icon", licon)
                 image = Gtk.Image.new_from_file(licon)
-            else:
+            elif os.environ.get("SNAP"):
                 # probably we're in a snap
                 sicon = os.path.join(
                     os.path.split(__file__)[0],
@@ -337,10 +344,18 @@ class Main(object):
                 if os.path.exists(sicon):
                     # print("Using local snap icon", sicon)
                     image = Gtk.Image.new_from_file(sicon)
+            else:
+                # probably we're in a flatpak
+                #print("Probably in a flatpak"
+                ficon = "/app/share/icons/hicolor/48x48/apps/org.kryogenix.Pick.png"
+                if os.path.exists(ficon):
+                    # print("Using local flatpak icon", ficon)
+                    image = Gtk.Image.new_from_file(ficon)
             # and set this as the default icon if it exists
             if image:
                 self.w.set_default_icon(image.get_pixbuf())
-        image.set_property("valign", Gtk.Align.END)
+        if image:
+            image.set_property("valign", Gtk.Align.END)
         self.empty.pack_start(image, True, True, 0)
         nocol1 = Gtk.Label(label="No Colours")
         nocol1.set_name("empty-heading")
