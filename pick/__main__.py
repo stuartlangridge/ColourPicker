@@ -109,7 +109,7 @@ class Main(object):
 
         # create application
         self.app = Gtk.Application.new(
-            "org.kryogenix.pick-colour-picker",
+            "org.kryogenix.Pick",
             Gio.ApplicationFlags.HANDLES_COMMAND_LINE)
         self.app.connect("command-line", self.handle_commandline)
 
