@@ -12,3 +12,11 @@ debian/files
 *.pyc
 pick_colour_picker.egg-info
 debian/pick-colour-picker*
+
+.flatpak-builder/
+debian/debhelper-build-stamp
+pick-colour-picker_master_amd64.snap
+pick-colour-picker_master_source.tar.bz2
+ppadl.php
+sil-flatpack-build.sh
+snap/.snapcraft/
