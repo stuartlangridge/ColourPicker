@@ -16,7 +16,6 @@ modules:
       - install -D pick-colour-picker-flatpak-runscript.sh /app/bin/pick-colour-picker
       - chmod a+x /app/bin/pick-colour-picker
       - cp -r pick /app/pick
-      - cp __main__.py /app/pick/__main__.py
       - rm -rf /app/pick/__pycache__
       - mkdir -p /app/share/metainfo/
       - sed 's/pick-colour-picker.desktop/org.kryogenix.Pick.desktop/' pick-colour-picker.appdata.xml > /app/share/metainfo/org.kryogenix.Pick.appdata.xml
@@ -33,5 +32,3 @@ modules:
       - type: git
         url: https://github.com/stuartlangridge/ColourPicker.git
         branch: app
-      - type: file
-        path: pick/__main__.py
