@@ -38,7 +38,7 @@ plugs:
 slots:
   pick-colour-picker-dbus:
     interface: dbus
-    name: org.kryogenix.pick-colour-picker
+    name: org.kryogenix.Pick
     bus: session
 
 apps:
