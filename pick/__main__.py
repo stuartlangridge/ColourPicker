@@ -8,7 +8,7 @@ except:
     Unity = False
 import cairo, math, json, os, codecs, time, subprocess, sys, base64, colorsys
 
-__VERSION__ = "1.60.174"
+__VERSION__ = "1.60.175"
 
 if "--snark" in sys.argv:
     from .snark import COLOUR_NAMES

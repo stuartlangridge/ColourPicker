@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<component type="desktop">
+<!-- Copyright 2022 Stuart Langridge -->
+<component type="desktop-application">
   <id>pick-colour-picker.desktop</id>
+  <launchable type="desktop-id">pick-colour-picker.desktop</launchable>
   <metadata_license>CC0-1.0</metadata_license>
   <project_license>MIT</project_license>
   <name>Pick</name>
@@ -13,6 +15,9 @@
         your choice of format: rgba() or hex, CSS or Gdk or Qt or Android, whichever you 
         prefer. Copy to the clipboard ready for pasting into code or graphics apps.</p>
   </description>
+  <provides>
+    <binary>pick-colour-picker</binary>
+  </provides>
   <screenshots>
     <screenshot type="default">
       <image>https://raw.githubusercontent.com/stuartlangridge/ColourPicker/app/pick-screenshot-16x9.png</image>
@@ -20,4 +25,17 @@
   </screenshots>
   <url type="homepage">https://kryogenix.org/code/pick/</url>
   <update_contact>sil at kryogenix.org</update_contact>
+  <content_rating type="oars-1.1">
+    <content_attribute id="drugs-alcohol">mild</content_attribute>
+    <content_attribute id="drugs-narcotics">mild</content_attribute>
+    <content_attribute id="language-profanity">moderate</content_attribute>
+    <content_attribute id="language-humor">moderate</content_attribute>
+  </content_rating>
+  <developer_name>Stuart Langridge</developer_name>
+  <url type="bugtracker">https://github.com/stuartlangridge/ColourPicker/issues</url>
+  <url type="donation">https://paypal.me/stuartlangridge</url>
+  <releases>
+    <release date="2022-05-07" version="1.60.175" />
+    <release date="2022-05-07" version="1.60.174" />
+  </releases>
 </component>
