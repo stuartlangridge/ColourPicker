@@ -8,13 +8,12 @@ except:
     Unity = False
 import cairo, math, json, os, codecs, time, subprocess, sys, base64, colorsys
 
-__VERSION__ = "1.51"
+__VERSION__ = "1.6.172"
 
 if "--snark" in sys.argv:
     from .snark import COLOUR_NAMES
 else:
     from .colours import COLOUR_NAMES
-
 
 def rgb_to_lab(r, g, b):
     """Convert RGB colours to LAB colours
