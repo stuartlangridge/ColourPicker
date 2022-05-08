@@ -8,7 +8,7 @@ except:
     Unity = False
 import cairo, math, json, os, codecs, time, subprocess, sys, base64, colorsys
 
-__VERSION__ = "1.60.175"
+__VERSION__ = "1.60.176"
 
 if "--snark" in sys.argv:
     from .snark import COLOUR_NAMES
@@ -221,6 +221,7 @@ class Main(object):
         self.btngrab = btngrab
         icon = Gio.ThemedIcon(name="pick-colour-picker-symbolic")
         theme_icon = Gtk.IconTheme.get_default().lookup_by_gicon(icon, 0, 0)
+        image = None
         if theme_icon:
             # our symbolic icon is included in the theme, so use it
             image = Gtk.Image.new_from_gicon(icon, Gtk.IconSize.BUTTON)
@@ -231,7 +232,7 @@ class Main(object):
                 "data", "icons", "scalable", "apps",
                 "pick-colour-picker-symbolic.svg")
             flatpak_icon = ("/app/share/icons/hicolor/scalable/apps/"
-                "org.kryogenix.Pick.svg")
+                "org.kryogenix.Pick-symbolic.svg")
             if os.path.isfile(snap_icon):
                 image = Gtk.Image.new_from_file(snap_icon)
             elif os.path.isfile(flatpak_icon):
