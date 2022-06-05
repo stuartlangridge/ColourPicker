@@ -151,6 +151,24 @@ class Main(object):
         if on_window_map:
             self.w.connect("map-event", on_window_map)
 
+        # Get the actual cursor scale from gconf so we don't get over the size limit (issue #6)
+        try:
+            cursor_scale = 1.0
+            if os.getenv("CURSOR_SCALE") != None:
+                cursor_scale = float(os.getenv("CURSOR_SCALE"))
+            else:
+                cursor_scale = self.w.get_screen().get_display().get_default_cursor_size() / float(Gio.Settings("org.gnome.desktop.interface").get_int("cursor-size"))
+            if cursor_scale != 1.0:
+                cursor_scaled_snapsize = min([
+                    int(math.ceil(self.snapsize[0] / 2 / cursor_scale) * 2),
+                    self.w.get_screen().get_display().get_maximal_cursor_size().width
+                ])
+                print("Adjusted cursor size: " + str(cursor_scaled_snapsize))
+                self.snapsize = (cursor_scaled_snapsize, cursor_scaled_snapsize)
+        except:
+            # No gnome/dconf?!
+            print("Couldn't determine correct cursor size. If you experience any flickering, try launching with CURSOR_SCALE=2")
+
         devman = self.w.get_screen().get_display().get_device_manager()
         self.pointer = devman.get_client_pointer()
         keyboards = [
@@ -874,10 +892,7 @@ class Main(object):
 
     def get_colour_from_pb(self, pb):
         pixel_data = pb.get_pixels()
-        offset = (
-            (pb.get_rowstride() * (self.snapsize[1] / 2)) +
-            ((self.latest_pb.get_rowstride() / self.snapsize[0]) *
-                (self.snapsize[0] / 2)))
+        offset = pb.get_rowstride() * pb.get_height() / 2 + (pb.get_rowstride() / 2)
         offset = int(offset)
         rgb_vals = []
         # pixel data gets returned as bytes or int depending
