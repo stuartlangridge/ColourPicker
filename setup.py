@@ -24,6 +24,7 @@ setup(
 
     data_files=[
         (sys.prefix+'/share/applications',['pick-colour-picker.desktop']),
+        (sys.prefix+'/share/metainfo',['pick-colour-picker.appdata.xml']),
         (sys.prefix+'/share/pixmaps', ['pick-colour-picker.png'])
     ] + icons,
 
